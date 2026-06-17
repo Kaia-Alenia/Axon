@@ -2,7 +2,7 @@
 
 First off, **thank you** for considering contributing to Axon! Every contribution helps make this project better for everyone.
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Code of Conduct](#code-of-conduct)
 - [How Can I Contribute?](#how-can-i-contribute)
@@ -17,19 +17,19 @@ This project adheres to a [Code of Conduct](CODE_OF_CONDUCT.md). By participatin
 
 ## How Can I Contribute?
 
-### 🐛 Reporting Bugs
+### Reporting Bugs
 
 - Use the [Bug Report](https://github.com/Kaia-Alenia/Axon/issues/new?template=bug_report.md) issue template.
 - Include your OS, Go version, and steps to reproduce.
 - Attach logs or screenshots if applicable.
 
-### 💡 Suggesting Features
+### Suggesting Features
 
 - Use the [Feature Request](https://github.com/Kaia-Alenia/Axon/issues/new?template=feature_request.md) issue template.
 - Explain the problem your feature would solve.
 - Describe your proposed solution.
 
-### 🔧 Code Contributions
+### Code Contributions
 
 1. Look for issues labeled [`good first issue`](https://github.com/Kaia-Alenia/Axon/labels/good%20first%20issue) or [`help wanted`](https://github.com/Kaia-Alenia/Axon/labels/help%20wanted).
 2. Comment on the issue to let others know you're working on it.
@@ -97,4 +97,4 @@ cd android
 
 ---
 
-Thank you for helping make Axon better! ⚡
+Thank you for helping make Axon better!

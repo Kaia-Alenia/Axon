@@ -1,5 +1,5 @@
 ---
-name: 💡 Feature Request
+name: Feature Request
 about: Suggest an idea for Axon
 title: "[FEATURE] "
 labels: enhancement

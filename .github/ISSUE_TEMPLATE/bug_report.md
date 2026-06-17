@@ -1,5 +1,5 @@
 ---
-name: 🐛 Bug Report
+name: Bug Report
 about: Report a bug to help us improve Axon
 title: "[BUG] "
 labels: bug
