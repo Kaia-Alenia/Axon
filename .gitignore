@@ -1,23 +1,21 @@
 *.iml
-.gradle
+.gradle/
 .idea/
-*.DS_Store
-.cxx
+.DS_Store
+.cxx/
 local.properties
+*.hprof
 
-# Go
+# Go binaries
 server/axon
-server/alenia-axon
+server/axon.exe
 
-# Android
+# Android build
 android/build/
 android/app/build/
 android/.kotlin/
 android/captures/
-android/.externalNativeBuild
-
-# Auth
-server/auth/
+android/.externalNativeBuild/
 
 # OS
 .superpowers/

@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=Alenia Axon Server
-Exec=/usr/local/bin/axon-server
-Icon=/media/alejandro/D/tool/Axon/server/web/icon.png
-Type=Application
-Terminal=true
-Categories=Utility;
