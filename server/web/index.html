@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Alenia Axon</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>Alenia Axon</h1>
+            <div id="connection-status" class="status-indicator disconnected">Desconectado</div>
+        </header>
+
+        <div class="main-layout">
+            <div id="touchpad" class="touchpad-area">
+                <span class="touchpad-label">TOUCHPAD</span>
+            </div>
+            
+            <div id="scrollpad" class="scrollpad-area">
+                <span class="scrollpad-label">SCROLL</span>
+            </div>
+        </div>
+
+        <div class="mouse-buttons">
+            <button id="btn-left" class="mouse-btn">Izquierdo</button>
+            <button id="btn-right" class="mouse-btn">Derecho</button>
+        </div>
+
+        <footer class="app-footer">
+            <button id="btn-keyboard" class="action-btn">Teclado</button>
+            <input type="text" id="hidden-input" style="opacity: 0; position: absolute; pointer-events: none; width: 0; height: 0;">
+        </footer>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

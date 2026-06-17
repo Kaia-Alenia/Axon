@@ -1,0 +1,27 @@
+*.iml
+.gradle
+.idea/
+*.DS_Store
+.cxx
+local.properties
+
+# Go
+server/axon
+server/alenia-axon
+
+# Android
+android/build/
+android/app/build/
+android/.kotlin/
+android/captures/
+android/.externalNativeBuild
+
+# Auth
+server/auth/
+
+# OS
+.superpowers/
+*.exe
+*.dll
+*.so
+*.dylib
