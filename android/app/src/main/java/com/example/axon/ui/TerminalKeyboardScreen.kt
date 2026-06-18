@@ -21,6 +21,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -94,6 +98,34 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
     var ctrlActive by remember { mutableStateOf(false) }
     var altActive by remember { mutableStateOf(false) }
     val historyListState = rememberLazyListState()
+    var textState by remember { mutableStateOf("") }
+
+    BasicTextField(
+        value = textState,
+        onValueChange = { newText ->
+            if (newText.endsWith("\n")) {
+                client.sendKey("Return")
+                history.add("[Return]")
+                textState = ""
+            } else if (newText.length > textState.length) {
+                val addedText = newText.substring(textState.length)
+                client.sendType(addedText)
+                history.add(addedText)
+                textState = newText
+            } else if (newText.length < textState.length) {
+                client.sendKey("BackSpace")
+                history.add("[BackSpace]")
+                textState = newText
+            }
+        },
+        modifier = Modifier
+            .size(0.dp)
+            .focusRequester(focusRequester),
+        keyboardOptions = KeyboardOptions(
+            imeAction = ImeAction.Default,
+            keyboardType = KeyboardType.Text
+        )
+    )
 
     LaunchedEffect(Unit) {
         try { focusRequester.requestFocus(); keyboardController?.show() } catch (_: Exception) {}
