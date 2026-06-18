@@ -12,7 +12,7 @@ import (
 func startBluetoothServer() {
 	fd, err := unix.Socket(unix.AF_BLUETOOTH, unix.SOCK_STREAM, unix.BTPROTO_RFCOMM)
 	if err != nil {
-		fmt.Println("Error al crear socket Bluetooth:", err)
+		fmt.Println("Error creating Bluetooth socket:", err)
 		return
 	}
 	defer unix.Close(fd)
@@ -23,26 +23,26 @@ func startBluetoothServer() {
 	}
 
 	if err := unix.Bind(fd, addr); err != nil {
-		fmt.Println("Error al hacer bind en Bluetooth (quizás otro servicio usa el canal 1):", err)
+		fmt.Println("Error binding to Bluetooth (maybe another service is using channel 1):", err)
 		return
 	}
 
 	if err := unix.Listen(fd, 1); err != nil {
-		fmt.Println("Error al escuchar en Bluetooth:", err)
+		fmt.Println("Error listening on Bluetooth:", err)
 		return
 	}
 
-	fmt.Println("Servidor Bluetooth RFCOMM escuchando en el canal 1")
+	fmt.Println("RFCOMM Bluetooth server listening on channel 1")
 
 	for {
 		clientFd, sa, err := unix.Accept(fd)
 		if err != nil {
-			fmt.Println("Error al aceptar conexión Bluetooth:", err)
+			fmt.Println("Error accepting Bluetooth connection:", err)
 			continue
 		}
 
 		if btAddr, ok := sa.(*unix.SockaddrRFCOMM); ok {
-			fmt.Printf("[CONEXIÓN] Cliente Bluetooth conectado desde MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
+			fmt.Printf("[CONNECTION] Bluetooth client connected from MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
 				btAddr.Addr[5], btAddr.Addr[4], btAddr.Addr[3], btAddr.Addr[2], btAddr.Addr[1], btAddr.Addr[0])
 		}
 
@@ -81,20 +81,20 @@ func handleBluetoothConnection(fd int) {
 			}
 			simulator.Scroll(dir)
 		case "type":
-			fmt.Printf("[TECLADO BT] Escribiendo texto: %q\n", msg.Text)
+			fmt.Printf("[BT KEYBOARD] Typing text: %q\n", msg.Text)
 			simulator.Type(msg.Text)
 		case "key":
-			fmt.Printf("[TECLADO BT] Presionando tecla especial: %q\n", msg.Key)
+			fmt.Printf("[BT KEYBOARD] Pressing special key: %q\n", msg.Key)
 			simulator.Key(msg.Key)
 		case "keycombo":
-			fmt.Printf("[TECLADO BT] Presionando combo: %s+%s\n", msg.Modifier, msg.Key)
+			fmt.Printf("[BT KEYBOARD] Pressing combo: %s+%s\n", msg.Modifier, msg.Key)
 			simulator.KeyCombo(msg.Modifier, msg.Key)
 		}
 	}
 	
 	if err := scanner.Err(); err != nil {
-		fmt.Println("[DESCONEXIÓN] Cliente Bluetooth error:", err)
+		fmt.Println("[DISCONNECTION] Bluetooth client error:", err)
 	} else {
-		fmt.Println("[DESCONEXIÓN] Cliente Bluetooth desconectado")
+		fmt.Println("[DISCONNECTION] Bluetooth client disconnected")
 	}
 }

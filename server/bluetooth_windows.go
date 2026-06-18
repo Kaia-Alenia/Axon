@@ -5,5 +5,5 @@ package main
 import "fmt"
 
 func startBluetoothServer() {
-	fmt.Println("Servidor Bluetooth no soportado nativamente en Windows todavía")
+	fmt.Println("Bluetooth server is not natively supported on Windows yet")
 }

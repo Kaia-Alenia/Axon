@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -52,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.axon.network.UdpClient
 import com.example.axon.network.InputClient
+import com.example.axon.R
 import kotlin.math.abs
 import kotlinx.coroutines.launch
 
@@ -121,7 +123,7 @@ fun TouchpadScreen(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Touchpad",
+                        text = stringResource(id = R.string.touchpad_title),
                         color = TextPrim2,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
@@ -145,7 +147,7 @@ fun TouchpadScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Desconectar",
+                        text = stringResource(id = R.string.disconnect_action),
                         color = RedBorder,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold
@@ -304,7 +306,7 @@ fun TouchpadScreen(
                         }
                     }
                     Text(
-                        "SCROLL",
+                        text = stringResource(id = R.string.scroll_label),
                         color = TextSec2.copy(alpha = 0.4f),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Medium,
@@ -328,7 +330,7 @@ fun TouchpadScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        "Clic Izq",
+                        text = stringResource(id = R.string.left_click),
                         color = TextPrim2,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold
@@ -348,7 +350,7 @@ fun TouchpadScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        "Clic Der",
+                        text = stringResource(id = R.string.right_click),
                         color = TextPrim2,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold

@@ -95,6 +95,22 @@ cd android
 - Use present tense: "Add feature" not "Added feature".
 - Reference issues when applicable: `Fix #42`.
 
+## Localization (i18n)
+
+We want to make Axon accessible to everyone. Currently, the project is moving towards supporting English and Spanish. If you want to contribute translations for other languages:
+
+### Android Client
+1. Translations are managed via standard Android resource files.
+2. Locate the base strings in `android/app/src/main/res/values/strings.xml`.
+3. Create a new directory for your target language (e.g., `values-fr` for French, `values-de` for German) inside `android/app/src/main/res/`.
+4. Copy `strings.xml` to your new folder and translate the values.
+
+### Web Client & Server
+1. The web client is located in `server/web/`.
+2. Translations for the Web interface are built directly into `server/web/index.html` and `server/web/app.js`.
+3. If implementing dynamic language switching, ensure the files remain lightweight and compatible with Go's `embed` package.
+
 ---
 
 Thank you for helping make Axon better!
+

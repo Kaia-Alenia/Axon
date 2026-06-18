@@ -48,7 +48,7 @@ class BluetoothClient(private val listener: ConnectionListener) : InputClient {
                 outputStream = socket?.outputStream
                 listener.onConnected()
             } catch (e: Exception) {
-                listener.onError("Error Bluetooth: ${e.message}")
+                listener.onError("Bluetooth Error: ${e.message}")
                 disconnect()
             }
         }.start()

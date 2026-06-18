@@ -180,7 +180,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	isLocal := isAddressLocal(remoteAddrStr)
 
 	if !isLocal && token != activeToken {
-		http.Error(w, "No autorizado", http.StatusUnauthorized)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -205,7 +205,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	activeClientIP = ip
 	activeClientMu.Unlock()
 
-	fmt.Printf("[CONEXIÓN] Cliente conectado desde: %s\n", remoteAddrStr)
+	fmt.Printf("[CONNECTION] Client connected from: %s\n", remoteAddrStr)
 
 	done := make(chan bool)
 	defer func() {
@@ -215,7 +215,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			activeClientIP = ""
 		}
 		activeClientMu.Unlock()
-		fmt.Println("[DESCONEXIÓN] Cliente desconectado")
+		fmt.Println("[DISCONNECTION] Client disconnected")
 	}()
 
 	go func() {
@@ -258,7 +258,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		switch msg.Type {
 		case "pong":
 			rtt := time.Now().UnixMilli() - msg.Timestamp
-			fmt.Printf("[LATENCIA] Latencia RTT: %d ms\n", rtt)
+			fmt.Printf("[LATENCY] RTT Latency: %d ms\n", rtt)
 		case "move":
 			simulator.MoveMouse(msg.Dx, msg.Dy)
 		case "click":
@@ -274,13 +274,13 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			}
 			simulator.Scroll(dir)
 		case "type":
-			fmt.Printf("[TECLADO] Escribiendo texto: %q\n", msg.Text)
+			fmt.Printf("[KEYBOARD] Typing text: %q\n", msg.Text)
 			simulator.Type(msg.Text)
 		case "key":
-			fmt.Printf("[TECLADO] Presionando tecla especial: %q\n", msg.Key)
+			fmt.Printf("[KEYBOARD] Pressing special key: %q\n", msg.Key)
 			simulator.Key(msg.Key)
 		case "keycombo":
-			fmt.Printf("[TECLADO] Presionando combo: %s+%s\n", msg.Modifier, msg.Key)
+			fmt.Printf("[KEYBOARD] Pressing combo: %s+%s\n", msg.Modifier, msg.Key)
 			simulator.KeyCombo(msg.Modifier, msg.Key)
 		}
 	}
@@ -289,13 +289,13 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 func startUDPServer() {
 	addr, err := net.ResolveUDPAddr("udp", ":6970")
 	if err != nil {
-		fmt.Println("Error al resolver dirección UDP:", err)
+		fmt.Println("Error resolving UDP address:", err)
 		return
 	}
 
 	conn, err := net.ListenUDP("udp", addr)
 	if err != nil {
-		fmt.Println("Error al iniciar servidor UDP:", err)
+		fmt.Println("Error starting UDP server:", err)
 		return
 	}
 	defer conn.Close()
@@ -390,7 +390,7 @@ func main() {
 
 	ip := getLocalIP()
 	if ip == "" {
-		fmt.Println("Error: No se pudo obtener la IP local")
+		fmt.Println("Error: Could not retrieve local IP")
 		os.Exit(1)
 	}
 
@@ -421,32 +421,32 @@ func main() {
 	time.Sleep(80 * time.Millisecond)
 	printLine(colorizeRainbow("    ────────────────────────────────────────────────────", 0.5), lineDelay)
 	time.Sleep(30 * time.Millisecond)
-	printLine(colorizeRainbow(fmt.Sprintf("    DIRECCIÓN : %s", ip), 0.5), lineDelay)
-	printLine(colorizeRainbow("    PUERTOS   : 6969 (TCP/WS)  ·  6970 (UDP)", 0.5), lineDelay)
-	printLine(colorizeRainbow("    TOKEN SEG : "+activeToken, 0.5), lineDelay)
+	printLine(colorizeRainbow(fmt.Sprintf("    ADDRESS : %s", ip), 0.5), lineDelay)
+	printLine(colorizeRainbow("    PORTS   : 6969 (TCP/WS)  ·  6970 (UDP)", 0.5), lineDelay)
+	printLine(colorizeRainbow("    SEC TOKEN : "+activeToken, 0.5), lineDelay)
 	time.Sleep(30 * time.Millisecond)
 	printLine(colorizeRainbow("    ────────────────────────────────────────────────────", 0.5), lineDelay)
 	time.Sleep(30 * time.Millisecond)
-	printLine(colorizeRainbow("    [WiFi ]   Conecta la app AXON a la IP mostrada", 0.5), lineDelay)
-	printLine(colorizeRainbow("    [USB  ]   Redireccionamiento ADB activo  →  puerto 6969", 0.5), lineDelay)
-	printLine(colorizeRainbow("    [BT   ]   Usa la app AXON → modo Bluetooth desde Android", 0.5), lineDelay)
+	printLine(colorizeRainbow("    [WiFi ]   Connect the AXON app to the displayed IP", 0.5), lineDelay)
+	printLine(colorizeRainbow("    [USB  ]   Active ADB redirection  →  port 6969", 0.5), lineDelay)
+	printLine(colorizeRainbow("    [BT   ]   Use the AXON app → Bluetooth mode from Android", 0.5), lineDelay)
 	time.Sleep(30 * time.Millisecond)
 	printLine(colorizeRainbow("    ────────────────────────────────────────────────────", 0.5), lineDelay)
 	printLine("", 0)
 
 	time.Sleep(60 * time.Millisecond)
-	fmt.Println(colorizeRainbow("    Escanea el QR con la app AXON:", 0.5))
+	fmt.Println(colorizeRainbow("    Scan the QR with the AXON app:", 0.5))
 	printLine("", 0)
 
 	qrCode, err := qrcode.New(url, qrcode.Medium)
 	if err == nil {
 		printQRRainbow(qrCode.ToSmallString(false))
 	} else {
-		fmt.Println("Error al generar código QR en consola:", err)
+		fmt.Println("Error generating QR code in console:", err)
 	}
 
 	fmt.Printf("\n")
-	fmt.Println(colorizeRainbow(fmt.Sprintf("    O ingresa: %s", url), 0.5))
+	fmt.Println(colorizeRainbow(fmt.Sprintf("    Or enter: %s", url), 0.5))
 	fmt.Println()
 
 	go startBluetoothServer()
@@ -454,7 +454,7 @@ func main() {
 
 	subFS, err := fs.Sub(webFS, "web")
 	if err != nil {
-		fmt.Println("Error al cargar archivos web estáticos:", err)
+		fmt.Println("Error loading static web files:", err)
 		os.Exit(1)
 	}
 
@@ -463,7 +463,7 @@ func main() {
 
 	err = http.ListenAndServe(":6969", nil)
 	if err != nil {
-		fmt.Println("Error al iniciar el servidor:", err)
+		fmt.Println("Error starting the server:", err)
 		os.Exit(1)
 	}
 }

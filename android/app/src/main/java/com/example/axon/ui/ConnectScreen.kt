@@ -45,11 +45,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.example.axon.R
 
 private const val PREFS_NAME = "axon_prefs"
 private const val KEY_LAST_IP = "last_ip"
@@ -173,7 +175,7 @@ fun ConnectScreen(
                     }
                 }
                 Text(
-                    text = "CONEXIÓN",
+                    text = stringResource(id = R.string.connection_title),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = CTextWhite,
@@ -194,6 +196,11 @@ fun ConnectScreen(
             ) {
                 listOf(ConnectionMode.WiFi, ConnectionMode.USB, ConnectionMode.Bluetooth).forEach { m ->
                     val selected = mode == m
+                    val modeLabel = when (m) {
+                        ConnectionMode.WiFi -> stringResource(id = R.string.mode_wifi)
+                        ConnectionMode.USB -> stringResource(id = R.string.mode_usb)
+                        ConnectionMode.Bluetooth -> stringResource(id = R.string.mode_bluetooth)
+                    }
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -204,7 +211,7 @@ fun ConnectScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = m.name,
+                            text = modeLabel,
                             color = if (selected) Color.White else CTextSlate,
                             fontSize = 13.sp,
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
@@ -229,7 +236,7 @@ fun ConnectScreen(
                     when (mode) {
                         ConnectionMode.WiFi -> {
                             Text(
-                                text = "Wi-Fi · Segunda opción recomendada",
+                                text = stringResource(id = R.string.wifi_recommended),
                                 color = CTextWhite,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
@@ -245,7 +252,7 @@ fun ConnectScreen(
                                         .padding(10.dp)
                                 ) {
                                     Text(
-                                        text = "Token guardado — reconexión automática disponible",
+                                        text = stringResource(id = R.string.saved_token_msg),
                                         color = Color(0xFF3FB950),
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Medium
@@ -256,8 +263,8 @@ fun ConnectScreen(
                             OutlinedTextField(
                                 value = ipInput,
                                 onValueChange = { ipInput = it },
-                                label = { Text("Dirección IP de la PC", color = CTextSlate) },
-                                placeholder = { Text("Ej. 192.168.1.15", color = Color(0xFF484F58)) },
+                                label = { Text(stringResource(id = R.string.pc_ip_label), color = CTextSlate) },
+                                placeholder = { Text(stringResource(id = R.string.pc_ip_placeholder), color = Color(0xFF484F58)) },
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true,
                                 colors = OutlinedTextFieldDefaults.colors(
@@ -275,8 +282,8 @@ fun ConnectScreen(
                             OutlinedTextField(
                                 value = tokenInput,
                                 onValueChange = { tokenInput = it },
-                                label = { Text("Token de sesión (del QR o consola)", color = CTextSlate) },
-                                placeholder = { Text("Pega el token aquí", color = Color(0xFF484F58)) },
+                                label = { Text(stringResource(id = R.string.token_label), color = CTextSlate) },
+                                placeholder = { Text(stringResource(id = R.string.token_placeholder), color = Color(0xFF484F58)) },
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true,
                                 colors = OutlinedTextFieldDefaults.colors(
@@ -292,7 +299,7 @@ fun ConnectScreen(
                             )
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = "El token se guarda para reconectar automáticamente sin volver a escanear el QR.",
+                                text = stringResource(id = R.string.token_saved_hint),
                                 color = CTextSlate,
                                 fontSize = 10.sp,
                                 modifier = Modifier.align(Alignment.Start)
@@ -317,7 +324,7 @@ fun ConnectScreen(
                                     contentColor = Color.White
                                 )
                             ) {
-                                Text("Conectar por Wi-Fi", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                                Text(stringResource(id = R.string.connect_wifi), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                             }
                             Spacer(modifier = Modifier.height(10.dp))
                             Button(
@@ -332,13 +339,13 @@ fun ConnectScreen(
                                     contentColor = CTextWhite
                                 )
                             ) {
-                                Text("Escanear Código QR", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                                Text(stringResource(id = R.string.scan_qr), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                             }
                         }
 
                         ConnectionMode.USB -> {
                             Text(
-                                text = "USB / ADB · Latencia mínima",
+                                text = stringResource(id = R.string.usb_min_latency),
                                 color = CTextWhite,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
@@ -352,15 +359,15 @@ fun ConnectScreen(
                                     .border(1.dp, Color(0x331F6FEB), RoundedCornerShape(10.dp))
                                     .padding(10.dp)
                             ) {
-                                Text(
-                                    text = "Sin token requerido. El canal USB es físicamente seguro. El redireccionamiento ADB se activa automáticamente.",
-                                    color = Color(0xFF79C0FF),
-                                    fontSize = 11.sp
-                                )
+                                  Text(
+                                      text = stringResource(id = R.string.usb_desc),
+                                      color = Color(0xFF79C0FF),
+                                      fontSize = 11.sp
+                                  )
                             }
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = "Conecta el cable USB y activa «Depuración USB» en las opciones de desarrollador del teléfono.",
+                                text = stringResource(id = R.string.usb_instructions),
                                 color = CTextSlate,
                                 fontSize = 12.sp,
                                 modifier = Modifier.padding(bottom = 16.dp)
@@ -376,13 +383,13 @@ fun ConnectScreen(
                                     contentColor = Color.White
                                 )
                             ) {
-                                Text("Conectar por USB (ADB)", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                                Text(stringResource(id = R.string.connect_usb), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                             }
                         }
 
                         ConnectionMode.Bluetooth -> {
                             Text(
-                                text = "Bluetooth · Sin red Wi-Fi disponible",
+                                text = stringResource(id = R.string.bt_no_wifi),
                                 color = CTextWhite,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
@@ -397,7 +404,7 @@ fun ConnectScreen(
                                     .padding(10.dp)
                             ) {
                                 Text(
-                                    text = "Usa Bluetooth solo cuando Wi-Fi no esté disponible. La latencia es mayor que Wi-Fi o USB.",
+                                    text = stringResource(id = R.string.bt_desc),
                                     color = CTextSlate,
                                     fontSize = 11.sp
                                 )
@@ -406,14 +413,14 @@ fun ConnectScreen(
 
                             if (bluetoothAdapter == null) {
                                 Text(
-                                    text = "Bluetooth no disponible en este dispositivo.",
+                                    text = stringResource(id = R.string.bt_not_available),
                                     color = CError,
                                     fontSize = 13.sp,
                                     textAlign = TextAlign.Center
                                 )
                             } else if (!bluetoothPermissionGranted && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                                 Text(
-                                    text = "Permiso requerido para listar tus dispositivos vinculados.",
+                                    text = stringResource(id = R.string.bt_permission_required),
                                     color = CTextSlate,
                                     fontSize = 12.sp,
                                     textAlign = TextAlign.Center,
@@ -424,11 +431,11 @@ fun ConnectScreen(
                                     colors = ButtonDefaults.buttonColors(containerColor = CPrimary),
                                     shape = RoundedCornerShape(10.dp)
                                 ) {
-                                    Text("Conceder Permiso", color = Color.White)
+                                    Text(stringResource(id = R.string.grant_permission), color = Color.White)
                                 }
                             } else {
                                 Text(
-                                    text = "Dispositivos Vinculados:",
+                                    text = stringResource(id = R.string.paired_devices),
                                     color = CTextWhite,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
@@ -438,7 +445,7 @@ fun ConnectScreen(
                                 )
                                 if (pairedDevices.isEmpty()) {
                                     Text(
-                                        text = "No se encontraron dispositivos. Vincula tu PC en los ajustes de Bluetooth.",
+                                        text = stringResource(id = R.string.no_devices_found),
                                         color = Color(0xFF484F58),
                                         fontSize = 12.sp,
                                         textAlign = TextAlign.Center,
@@ -454,7 +461,7 @@ fun ConnectScreen(
                                             .padding(4.dp)
                                     ) {
                                         pairedDevices.forEach { device ->
-                                            val deviceName = try { device.name } catch (e: SecurityException) { "Dispositivo" }
+                                            val deviceName = try { device.name } catch (e: SecurityException) { "Device" }
                                             val deviceAddress = device.address
                                             Row(
                                                 modifier = Modifier
@@ -465,7 +472,7 @@ fun ConnectScreen(
                                             ) {
                                                 Column(modifier = Modifier.weight(1f)) {
                                                     Text(
-                                                        text = deviceName ?: "Desconocido",
+                                                        text = deviceName ?: "Unknown",
                                                         color = CTextWhite,
                                                         fontSize = 13.sp,
                                                         fontWeight = FontWeight.SemiBold
@@ -477,7 +484,7 @@ fun ConnectScreen(
                                                     )
                                                 }
                                                 Text(
-                                                    text = "Conectar",
+                                                    text = stringResource(id = R.string.connect_action),
                                                     color = CPrimary,
                                                     fontSize = 12.sp,
                                                     fontWeight = FontWeight.Bold
@@ -489,7 +496,7 @@ fun ConnectScreen(
 
                                 Spacer(modifier = Modifier.height(14.dp))
                                 Text(
-                                    text = "— O ingresa MAC manualmente —",
+                                    text = stringResource(id = R.string.or_enter_mac),
                                     color = Color(0xFF484F58),
                                     fontSize = 11.sp,
                                     textAlign = TextAlign.Center,
@@ -498,8 +505,8 @@ fun ConnectScreen(
                                 OutlinedTextField(
                                     value = btMac,
                                     onValueChange = { btMac = it },
-                                    label = { Text("Dirección MAC Bluetooth", color = CTextSlate) },
-                                    placeholder = { Text("Ej. 00:11:22:33:44:55", color = Color(0xFF484F58)) },
+                                    label = { Text(stringResource(id = R.string.bt_mac_label), color = CTextSlate) },
+                                    placeholder = { Text(stringResource(id = R.string.bt_mac_placeholder), color = Color(0xFF484F58)) },
                                     modifier = Modifier.fillMaxWidth(),
                                     singleLine = true,
                                     colors = OutlinedTextFieldDefaults.colors(
@@ -525,7 +532,7 @@ fun ConnectScreen(
                                         contentColor = Color.White
                                     )
                                 ) {
-                                    Text("Conectar Manualmente", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                    Text(stringResource(id = R.string.connect_manually), fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }

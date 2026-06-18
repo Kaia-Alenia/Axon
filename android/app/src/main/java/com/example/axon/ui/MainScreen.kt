@@ -27,10 +27,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.axon.network.InputClient
+import com.example.axon.R
 
 private val MBg      = Color(0xFF0B1120)
 private val MCard    = Color(0xFF111827)
@@ -86,8 +88,8 @@ fun MainScreen(client: InputClient, onDisconnect: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 listOf(
-                    ControlMode.Mouse    to "🖱  Mouse",
-                    ControlMode.Keyboard to "⌨  Teclado"
+                    ControlMode.Mouse    to stringResource(id = R.string.label_mouse),
+                    ControlMode.Keyboard to stringResource(id = R.string.label_keyboard)
                 ).forEach { (m, label) ->
                     val selected = mode == m
                     Box(

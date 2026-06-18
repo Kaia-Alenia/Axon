@@ -37,11 +37,13 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.axon.network.InputClient
+import com.example.axon.R
 
 private data class SpecialKey(val label: String, val key: String)
 
@@ -121,8 +123,6 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
         }
     }
 
-
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -134,7 +134,7 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Terminal",
+                stringResource(id = R.string.terminal_title),
                 color = KbTextW,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
@@ -151,7 +151,7 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
                     .padding(horizontal = 12.dp, vertical = 7.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Salir", color = KbRed, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(id = R.string.exit_action), color = KbRed, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
             }
         }
 
@@ -172,7 +172,7 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
             LazyColumn(state = historyListState, modifier = Modifier.fillMaxSize()) {
                 item {
                     Text(
-                        "AXON TERMINAL BRIDGE\n${client.getServerIp()}\n",
+                        stringResource(id = R.string.terminal_bridge_msg, client.getServerIp()),
                         color = KbTextG.copy(alpha = 0.5f),
                         fontSize = 11.sp,
                         fontFamily = FontFamily.Monospace,
@@ -256,7 +256,6 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
             }
         }
 
-
         Spacer(modifier = Modifier.height(8.dp))
 
         Box(
@@ -269,7 +268,7 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             Text(
-                "Toca aquí para activar el teclado físico",
+                stringResource(id = R.string.tap_to_activate),
                 color = KbTextG,
                 fontSize = 11.sp,
                 fontFamily = FontFamily.Monospace

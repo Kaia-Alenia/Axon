@@ -19,6 +19,55 @@
     let lastScrollY = 0;
     let isScrolling = false;
 
+    const translations = {
+        en: {
+            connected: "Connected",
+            disconnected: "Disconnected",
+            left: "Left",
+            right: "Right",
+            keyboard: "Keyboard",
+            touchpad: "TOUCHPAD",
+            scroll: "SCROLL"
+        },
+        es: {
+            connected: "Conectado",
+            disconnected: "Desconectado",
+            left: "Izquierdo",
+            right: "Derecho",
+            keyboard: "Teclado",
+            touchpad: "TOUCHPAD",
+            scroll: "DESPLAZAR"
+        }
+    };
+
+    const userLang = (navigator.language || navigator.userLanguage || "en").startsWith("es") ? "es" : "en";
+    const t = translations[userLang];
+    document.documentElement.lang = userLang;
+
+    function updateStatus(isConnected) {
+        if (isConnected) {
+            statusIndicator.textContent = t.connected;
+            statusIndicator.className = "status-indicator connected";
+        } else {
+            statusIndicator.textContent = t.disconnected;
+            statusIndicator.className = "status-indicator disconnected";
+        }
+    }
+
+    function applyTranslations() {
+        btnLeft.textContent = t.left;
+        btnRight.textContent = t.right;
+        btnKeyboard.textContent = t.keyboard;
+        
+        const touchpadLabel = document.querySelector(".touchpad-label");
+        if (touchpadLabel) touchpadLabel.textContent = t.touchpad;
+        
+        const scrollpadLabel = document.querySelector(".scrollpad-label");
+        if (scrollpadLabel) scrollpadLabel.textContent = t.scroll;
+        
+        updateStatus(false);
+    }
+
     function connect() {
         let proto = window.location.protocol === "https:" ? "wss:" : "ws:";
         let wsUrl = proto + "//" + window.location.host + "/ws";
@@ -26,13 +75,11 @@
         socket = new WebSocket(wsUrl);
 
         socket.onopen = function() {
-            statusIndicator.textContent = "Conectado";
-            statusIndicator.className = "status-indicator connected";
+            updateStatus(true);
         };
 
         socket.onclose = function() {
-            statusIndicator.textContent = "Desconectado";
-            statusIndicator.className = "status-indicator disconnected";
+            updateStatus(false);
             setTimeout(connect, 2000);
         };
 
@@ -166,5 +213,6 @@
         }
     });
 
+    applyTranslations();
     connect();
 })();

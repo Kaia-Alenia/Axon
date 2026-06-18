@@ -79,13 +79,13 @@ cd android
 
 The APK will be at `android/app/build/outputs/apk/debug/`.
 
-## Recomendaciones de Conexión
+## Connection Recommendations
 
-Para obtener la mejor experiencia y minimizar la latencia, se sugieren las siguientes pautas:
+To get the best experience and minimize latency, the following guidelines are suggested:
 
-- **Local y Latencia Mínima (Recomendado)**: Se recomienda la conexión por **USB/ADB** para una respuesta casi instantánea.
-- **Wi-Fi vs Bluetooth**: Se recomienda usar **Wi-Fi** por encima de Bluetooth debido a su mayor velocidad y menor retardo.
-- **Bluetooth**: Solo se recomienda usar Bluetooth en casos específicos donde no se disponga de red Wi-Fi o cable USB.
+- **Local & Minimum Latency (Recommended)**: USB/ADB connection is recommended for an almost instantaneous response.
+- **Wi-Fi vs Bluetooth**: It is recommended to use Wi-Fi over Bluetooth due to its higher speed and lower latency.
+- **Bluetooth**: Bluetooth is only recommended in specific cases where no Wi-Fi network or USB cable is available.
 
 ## Platform Support
 

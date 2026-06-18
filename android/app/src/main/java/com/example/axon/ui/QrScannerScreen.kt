@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -52,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import com.example.axon.R
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
@@ -196,7 +198,7 @@ fun QrScannerScreen(
                             .padding(horizontal = 20.dp, vertical = 10.dp)
                     ) {
                         Text(
-                            text = "Alinea el código QR dentro del recuadro",
+                            text = stringResource(id = R.string.qr_instructions),
                             color = Color.White,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
@@ -211,7 +213,7 @@ fun QrScannerScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Obteniendo acceso a la cámara...",
+                    text = stringResource(id = R.string.requesting_camera),
                     color = Color.White,
                     fontSize = 14.sp,
                     fontFamily = FontFamily.Monospace

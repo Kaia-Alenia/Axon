@@ -34,10 +34,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.axon.R
 
 private val BgColor      = Color(0xFF0B1120)
 private val CardColor    = Color(0xFF111827)
@@ -160,7 +162,7 @@ fun StartScreen(onStart: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Control remoto de escritorio",
+                text = stringResource(id = R.string.remote_desktop_control),
                 color = TextSecond,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Normal,
@@ -178,10 +180,10 @@ fun StartScreen(onStart: () -> Unit) {
                     .padding(24.dp)
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                    Text("Mouse remoto", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(id = R.string.remote_mouse), color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        "Conecta vía USB, Wi-Fi o Bluetooth\npara controlar tu escritorio",
+                        stringResource(id = R.string.connect_instructions),
                         color = TextSecond,
                         fontSize = 13.sp,
                         textAlign = TextAlign.Center,
@@ -205,7 +207,7 @@ fun StartScreen(onStart: () -> Unit) {
                 )
             ) {
                 Text(
-                    "Conectar al escritorio",
+                    stringResource(id = R.string.connect_to_desktop),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 0.sp
