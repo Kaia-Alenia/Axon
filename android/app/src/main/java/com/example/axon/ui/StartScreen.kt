@@ -9,6 +9,8 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -51,7 +53,11 @@ private val TextSecond   = Color(0xFF9CA3AF)
 private val BorderColor  = Color(0xFF1F2937)
 
 @Composable
-fun StartScreen(onStart: () -> Unit) {
+fun StartScreen(
+    onStart: () -> Unit,
+    currentLanguage: String,
+    onToggleLanguage: () -> Unit
+) {
     val fadeIn   = remember { Animatable(0f) }
     val slideUp  = remember { Animatable(40f) }
     val btn      = remember { Animatable(0f) }
@@ -79,9 +85,27 @@ fun StartScreen(onStart: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BgColor),
-        contentAlignment = Alignment.Center
+            .background(BgColor)
     ) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 48.dp, end = 24.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(CardColor)
+                .border(1.dp, BorderColor, RoundedCornerShape(12.dp))
+                .clickable { onToggleLanguage() }
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = if (currentLanguage == "es") "ES ⇄ EN" else "EN ⇄ ES",
+                color = TextPrimary,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
