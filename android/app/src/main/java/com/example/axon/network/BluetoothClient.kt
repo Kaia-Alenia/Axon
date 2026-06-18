@@ -1,4 +1,4 @@
-package com.example.aleniaaxon.network
+package com.example.axon.network
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -7,11 +7,13 @@ import android.bluetooth.BluetoothSocket
 import org.json.JSONObject
 import java.io.OutputStream
 import java.util.UUID
+import java.util.concurrent.Executors
 
 class BluetoothClient(private val listener: ConnectionListener) : InputClient {
     private var socket: BluetoothSocket? = null
     private var outputStream: OutputStream? = null
     private var connectedDeviceAddress: String = ""
+    private val sendExecutor = Executors.newSingleThreadExecutor()
 
     interface ConnectionListener {
         fun onConnected()
@@ -28,9 +30,21 @@ class BluetoothClient(private val listener: ConnectionListener) : InputClient {
             try {
                 val adapter = BluetoothAdapter.getDefaultAdapter()
                 val device: BluetoothDevice = adapter.getRemoteDevice(deviceAddress)
-                val uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
-                socket = device.createRfcommSocketToServiceRecord(uuid)
-                socket?.connect()
+                try {
+                    val uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+                    socket = device.createRfcommSocketToServiceRecord(uuid)
+                    socket?.connect()
+                } catch (e: Exception) {
+                    try {
+                        val m = device.javaClass.getMethod("createRfcommSocket", Int::class.javaPrimitiveType)
+                        socket = m.invoke(device, 1) as BluetoothSocket
+                        socket?.connect()
+                    } catch (e2: Exception) {
+                        val m = device.javaClass.getMethod("createInsecureRfcommSocket", Int::class.javaPrimitiveType)
+                        socket = m.invoke(device, 1) as BluetoothSocket
+                        socket?.connect()
+                    }
+                }
                 outputStream = socket?.outputStream
                 listener.onConnected()
             } catch (e: Exception) {
@@ -50,14 +64,14 @@ class BluetoothClient(private val listener: ConnectionListener) : InputClient {
     }
 
     private fun send(message: String) {
-        Thread {
+        sendExecutor.execute {
             try {
                 outputStream?.write((message + "\n").toByteArray())
                 outputStream?.flush()
             } catch (e: Exception) {
                 disconnect()
             }
-        }.start()
+        }
     }
 
     override fun sendMove(dx: Double, dy: Double) {

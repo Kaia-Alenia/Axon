@@ -5,10 +5,10 @@ plugins {
 }
 
 android {
-    namespace = "com.example.aleniaaxon"
+    namespace = "com.example.axon"
     compileSdk = 36
     defaultConfig {
-        applicationId = "com.example.aleniaaxon"
+        applicationId = "com.example.axon"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

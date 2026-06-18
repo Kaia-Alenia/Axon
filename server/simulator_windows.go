@@ -125,6 +125,48 @@ func (s *WindowsSimulator) Key(key string) {
 		vk = 0x1B
 	case "space":
 		vk = 0x20
+	case "Up":
+		vk = 0x26
+	case "Down":
+		vk = 0x28
+	case "Left":
+		vk = 0x25
+	case "Right":
+		vk = 0x27
+	case "Home":
+		vk = 0x24
+	case "End":
+		vk = 0x23
+	case "Prior":
+		vk = 0x21
+	case "Next":
+		vk = 0x22
+	case "Delete":
+		vk = 0x2E
+	case "F1":
+		vk = 0x70
+	case "F2":
+		vk = 0x71
+	case "F3":
+		vk = 0x72
+	case "F4":
+		vk = 0x73
+	case "F5":
+		vk = 0x74
+	case "F6":
+		vk = 0x75
+	case "F7":
+		vk = 0x76
+	case "F8":
+		vk = 0x77
+	case "F9":
+		vk = 0x78
+	case "F10":
+		vk = 0x79
+	case "F11":
+		vk = 0x7A
+	case "F12":
+		vk = 0x7B
 	default:
 		return
 	}

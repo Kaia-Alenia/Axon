@@ -117,8 +117,8 @@ type ClientMessage struct {
 }
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+	ReadBufferSize:  4096,
+	WriteBufferSize: 4096,
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
@@ -134,9 +134,52 @@ func generateToken() string {
 	return string(b)
 }
 
+func isAddressLocal(remoteAddr string) bool {
+	host, _, err := net.SplitHostPort(remoteAddr)
+	if err != nil {
+		host = remoteAddr
+	}
+	if host == "127.0.0.1" || host == "::1" || host == "localhost" {
+		return true
+	}
+	ip := net.ParseIP(host)
+	if ip != nil {
+		if ip.IsLoopback() || ip.IsUnspecified() || ip.IsLinkLocalUnicast() {
+			return true
+		}
+	}
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return false
+	}
+	for _, iface := range ifaces {
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+		for _, addr := range addrs {
+			var ipNet *net.IPNet
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ipNet = v
+			case *net.IPAddr:
+				ipNet = &net.IPNet{IP: v.IP, Mask: net.CIDRMask(len(v.IP)*8, len(v.IP)*8)}
+			}
+			if ipNet != nil && ipNet.IP.Equal(ip) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	token := r.URL.Query().Get("token")
-	if token != activeToken {
+	remoteAddrStr := r.RemoteAddr
+	ip, _, _ := net.SplitHostPort(remoteAddrStr)
+	isLocal := isAddressLocal(remoteAddrStr)
+
+	if !isLocal && token != activeToken {
 		http.Error(w, "No autorizado", http.StatusUnauthorized)
 		return
 	}
@@ -149,10 +192,14 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	if tcpConn, ok := conn.UnderlyingConn().(*net.TCPConn); ok {
 		_ = tcpConn.SetNoDelay(true)
+		_ = tcpConn.SetKeepAlive(true)
+		_ = tcpConn.SetKeepAlivePeriod(1 * time.Second)
+		_ = tcpConn.SetReadBuffer(65536)
+		_ = tcpConn.SetWriteBuffer(65536)
 	}
 
-	remoteAddrStr := conn.RemoteAddr().String()
-	ip, _, _ := net.SplitHostPort(remoteAddrStr)
+	remoteAddrStr = conn.RemoteAddr().String()
+	ip, _, _ = net.SplitHostPort(remoteAddrStr)
 
 	activeClientMu.Lock()
 	activeClientIP = ip
@@ -172,7 +219,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	go func() {
-		ticker := time.NewTicker(2 * time.Second)
+		ticker := time.NewTicker(500 * time.Millisecond)
 		defer ticker.Stop()
 		for {
 			select {
@@ -322,7 +369,20 @@ func printQRRainbow(qrStr string) {
 	}
 }
 
+func startADBKeepalive() {
+	for {
+		time.Sleep(3 * time.Second)
+		activeClientMu.RLock()
+		hasClient := activeClientIP != ""
+		activeClientMu.RUnlock()
+		if !hasClient {
+			_ = exec.Command("adb", "reverse", "tcp:6969", "tcp:6969").Run()
+		}
+	}
+}
+
 func main() {
+	go startADBKeepalive()
 	simulator = NewSimulator()
 	defer simulator.Close()
 

@@ -1,9 +1,10 @@
-package com.example.aleniaaxon
+package com.example.axon
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -11,15 +12,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.example.aleniaaxon.network.BluetoothClient
-import com.example.aleniaaxon.network.InputClient
-import com.example.aleniaaxon.network.WebSocketClient
-import com.example.aleniaaxon.theme.AleniaAxonTheme
-import com.example.aleniaaxon.ui.ConnectScreen
-import com.example.aleniaaxon.ui.MainScreen
-import com.example.aleniaaxon.ui.QrScannerScreen
+import com.example.axon.network.BluetoothClient
+import com.example.axon.network.InputClient
+import com.example.axon.network.WebSocketClient
+import com.example.axon.theme.AxonTheme
+import com.example.axon.ui.ConnectScreen
+import com.example.axon.ui.MainScreen
+import com.example.axon.ui.QrScannerScreen
+import com.example.axon.ui.StartScreen
 
 enum class AppScreen {
+    Start,
     Connect,
     Scan,
     Control
@@ -29,7 +32,7 @@ class MainActivity : ComponentActivity(), WebSocketClient.WebSocketConnectionLis
     private var webSocketClient: WebSocketClient? = null
     private var bluetoothClient: BluetoothClient? = null
     private var activeClient: InputClient? = null
-    private var currentScreen by mutableStateOf(AppScreen.Connect)
+    private var currentScreen by mutableStateOf(AppScreen.Start)
     private var connectionError by mutableStateOf("")
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,12 +43,19 @@ class MainActivity : ComponentActivity(), WebSocketClient.WebSocketConnectionLis
         
         enableEdgeToEdge()
         setContent {
-            AleniaAxonTheme {
+            AxonTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     when (currentScreen) {
+                        AppScreen.Start -> {
+                            StartScreen(
+                                onStart = {
+                                    currentScreen = AppScreen.Connect
+                                }
+                            )
+                        }
                         AppScreen.Connect -> {
                             ConnectScreen(
                                 onConnect = { url ->
@@ -60,6 +70,9 @@ class MainActivity : ComponentActivity(), WebSocketClient.WebSocketConnectionLis
                                 },
                                 onScanQr = {
                                     currentScreen = AppScreen.Scan
+                                },
+                                onBack = {
+                                    currentScreen = AppScreen.Start
                                 },
                                 errorMessage = connectionError
                             )
@@ -90,7 +103,7 @@ class MainActivity : ComponentActivity(), WebSocketClient.WebSocketConnectionLis
                                     client = client,
                                     onDisconnect = {
                                         client.disconnect()
-                                        currentScreen = AppScreen.Connect
+                                        currentScreen = AppScreen.Start
                                     }
                                 )
                             }

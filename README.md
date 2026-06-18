@@ -19,7 +19,7 @@
 
 <br/>
 
-An open-source remote input tool by **Alenia Studios**. Run the server on your PC, connect from your phone's browser or the native Android app — instant wireless control.
+An open-source remote input tool by **AXON**. Run the server on your PC, connect from your phone's browser or the native Android app — instant wireless control.
 
 </div>
 
@@ -79,6 +79,14 @@ cd android
 
 The APK will be at `android/app/build/outputs/apk/debug/`.
 
+## Recomendaciones de Conexión
+
+Para obtener la mejor experiencia y minimizar la latencia, se sugieren las siguientes pautas:
+
+- **Local y Latencia Mínima (Recomendado)**: Se recomienda la conexión por **USB/ADB** para una respuesta casi instantánea.
+- **Wi-Fi vs Bluetooth**: Se recomienda usar **Wi-Fi** por encima de Bluetooth debido a su mayor velocidad y menor retardo.
+- **Bluetooth**: Solo se recomienda usar Bluetooth en casos específicos donde no se disponga de red Wi-Fi o cable USB.
+
 ## Platform Support
 
 | Platform | Touchpad | Keyboard | Scroll | Bluetooth |
@@ -118,6 +126,6 @@ This project is licensed under the **GNU General Public License v3 (GPL v3)** �
 
 <div align="center">
 
-**Alenia Studios** · [contact.aleniastudios@gmail.com](mailto:contact.aleniastudios@gmail.com)
+**AXON** · [contact.axon@gmail.com](mailto:contact.axon@gmail.com)
 
 </div>

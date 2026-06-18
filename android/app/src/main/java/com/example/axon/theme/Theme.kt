@@ -1,4 +1,4 @@
-package com.example.aleniaaxon.theme
+package com.example.axon.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -20,7 +20,7 @@ private val LightColorScheme =
   )
 
 @Composable
-fun AleniaAxonTheme(
+fun AxonTheme(
   darkTheme: Boolean = isSystemInDarkTheme(),
   dynamicColor: Boolean = true,
   content: @Composable () -> Unit,

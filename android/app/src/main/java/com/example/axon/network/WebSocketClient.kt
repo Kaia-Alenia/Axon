@@ -1,4 +1,4 @@
-package com.example.aleniaaxon.network
+package com.example.axon.network
 
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -69,7 +69,6 @@ class WebSocketClient(private val listener: WebSocketConnectionListener) : Input
         webSocket?.close(1000, "Normal Close")
         webSocket = null
         try {
-            client.dispatcher.executorService.shutdown()
             client.connectionPool.evictAll()
         } catch (e: Exception) {
         }

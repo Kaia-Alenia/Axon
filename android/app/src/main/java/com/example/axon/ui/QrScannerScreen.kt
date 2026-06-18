@@ -1,4 +1,4 @@
-package com.example.aleniaaxon.ui
+package com.example.axon.ui
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -11,8 +11,21 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,8 +35,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.graphics.ClipOp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
@@ -58,11 +84,14 @@ fun QrScannerScreen(
         if (!hasCamPermission) launcher.launch(Manifest.permission.CAMERA)
     }
 
-    if (hasCamPermission) {
-        val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
-        val detected = remember { AtomicBoolean(false) }
+    val neonCyan = Color(0xFF00F2FE)
+    val neonPurple = Color(0xFF9D4EDD)
 
-        Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+        if (hasCamPermission) {
+            val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+            val detected = remember { AtomicBoolean(false) }
+
             AndroidView(
                 factory = { ctx ->
                     val previewView = PreviewView(ctx)
@@ -105,10 +134,89 @@ fun QrScannerScreen(
                 },
                 modifier = Modifier.fillMaxSize()
             )
-        }
-    } else {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(text = "Cargando permisos de cámara...")
+
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val overlayPath = Path().apply {
+                    addRect(Rect(0f, 0f, size.width, size.height))
+                }
+                
+                val boxSize = 250.dp.toPx()
+                val left = (size.width - boxSize) / 2
+                val top = (size.height - boxSize) / 2
+                val right = left + boxSize
+                val bottom = top + boxSize
+                
+                val boxPath = Path().apply {
+                    addRoundRect(RoundRect(left, top, right, bottom, CornerRadius(20.dp.toPx(), 20.dp.toPx())))
+                }
+                
+                clipPath(boxPath, clipOp = ClipOp.Difference) {
+                    drawPath(overlayPath, Color(0x9905030B))
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .padding(20.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color(0xAA070514))
+                        .border(1.dp, Color(0x3300F2FE), RoundedCornerShape(10.dp))
+                        .clickable { onBack() }
+                        .align(Alignment.TopStart),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("←", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(260.dp)
+                        .border(2.dp, neonCyan, RoundedCornerShape(24.dp))
+                        .align(Alignment.Center)
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 40.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xCC070514))
+                            .border(1.dp, Color(0x339D4EDD), RoundedCornerShape(12.dp))
+                            .padding(horizontal = 20.dp, vertical = 10.dp)
+                    ) {
+                        Text(
+                            text = "Alinea el código QR dentro del recuadro",
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+        } else {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Obteniendo acceso a la cámara...",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
         }
     }
 }
