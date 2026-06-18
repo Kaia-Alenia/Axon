@@ -51,7 +51,7 @@ jobs:
           java-version: 17
 
       - name: Set up Gradle
-        uses: actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Build Android Debug APK
         run: |
