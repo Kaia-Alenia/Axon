@@ -70,7 +70,9 @@
 
     function connect() {
         let proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-        let wsUrl = proto + "//" + window.location.host + "/ws";
+        let urlParams = new URLSearchParams(window.location.search);
+        let token = urlParams.get("token") || "";
+        let wsUrl = proto + "//" + window.location.host + "/ws" + (token ? "?token=" + token : "");
         
         socket = new WebSocket(wsUrl);
 

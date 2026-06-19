@@ -188,7 +188,14 @@ func (s *WindowsSimulator) KeyCombo(modifier, key string) {
 	}
 	var keyVk uint16
 	if len(key) == 1 {
-		keyVk = uint16([]rune(key)[0] - 32)
+		char := []rune(key)[0]
+		if char >= 'a' && char <= 'z' {
+			keyVk = uint16(char - 32)
+		} else if char >= 'A' && char <= 'Z' {
+			keyVk = uint16(char)
+		} else {
+			keyVk = uint16(char)
+		}
 	} else {
 		return
 	}

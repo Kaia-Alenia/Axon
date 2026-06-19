@@ -57,6 +57,23 @@ Axon/
 ├── CHANGELOG.md     # Version history
 └── README.md
 ```
+## Downloads & Installation
+
+To use Axon, you need to download two files: the app for your phone and the server for your computer.
+
+### 1. Android App (Client)
+Download the following file and install it on your mobile device:
+* [axon-android-debug.apk](https://github.com/kaia-alenia/axon/releases/latest/download/axon-android-debug.apk)
+
+### 2. Server (Computer)
+Download the correct file for your computer's operating system to receive connections:
+* **Windows:** [axon-windows-amd64.exe](https://github.com/kaia-alenia/axon/releases/latest/download/axon-windows-amd64.exe)
+* **Linux:** [axon-linux-amd64](https://github.com/kaia-alenia/axon/releases/latest/download/axon-linux-amd64)
+* **macOS (Intel):** [axon-darwin-amd64](https://github.com/kaia-alenia/axon/releases/latest/download/axon-darwin-amd64)
+* **macOS (Apple Silicon):** [axon-darwin-arm64](https://github.com/kaia-alenia/axon/releases/latest/download/axon-darwin-arm64)
+
+> **Note for Linux and macOS users:** After downloading the server file, remember to grant it execution permissions from the terminal before launching it:
+> `chmod +x filename`
 
 ## Quick Start
 

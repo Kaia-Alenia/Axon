@@ -237,6 +237,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 				_ = conn.SetWriteDeadline(time.Now().Add(1 * time.Second))
 				err = conn.WriteMessage(websocket.TextMessage, data)
 				if err != nil {
+					_ = conn.Close()
 					return
 				}
 			case <-done:

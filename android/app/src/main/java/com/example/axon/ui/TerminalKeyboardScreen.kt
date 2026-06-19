@@ -104,6 +104,13 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
         value = textState,
         onValueChange = { newText ->
             if (newText.endsWith("\n")) {
+                val added = if (newText.length > textState.length + 1) {
+                    newText.substring(textState.length, newText.length - 1)
+                } else ""
+                if (added.isNotEmpty()) {
+                    client.sendType(added)
+                    history.add(added)
+                }
                 client.sendKey("Return")
                 history.add("[Return]")
                 textState = ""

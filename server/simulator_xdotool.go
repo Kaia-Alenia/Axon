@@ -183,35 +183,137 @@ func (s *LinuxSimulator) executeCmd(cmdStr string) {
 	}
 }
 
+var runeToKey = map[rune]int{
+	'a':  uinput.KeyA,
+	'b':  uinput.KeyB,
+	'c':  uinput.KeyC,
+	'd':  uinput.KeyD,
+	'e':  uinput.KeyE,
+	'f':  uinput.KeyF,
+	'g':  uinput.KeyG,
+	'h':  uinput.KeyH,
+	'i':  uinput.KeyI,
+	'j':  uinput.KeyJ,
+	'k':  uinput.KeyK,
+	'l':  uinput.KeyL,
+	'm':  uinput.KeyM,
+	'n':  uinput.KeyN,
+	'o':  uinput.KeyO,
+	'p':  uinput.KeyP,
+	'q':  uinput.KeyQ,
+	'r':  uinput.KeyR,
+	's':  uinput.KeyS,
+	't':  uinput.KeyT,
+	'u':  uinput.KeyU,
+	'v':  uinput.KeyV,
+	'w':  uinput.KeyW,
+	'x':  uinput.KeyX,
+	'y':  uinput.KeyY,
+	'z':  uinput.KeyZ,
+	'0':  uinput.Key0,
+	'1':  uinput.Key1,
+	'2':  uinput.Key2,
+	'3':  uinput.Key3,
+	'4':  uinput.Key4,
+	'5':  uinput.Key5,
+	'6':  uinput.Key6,
+	'7':  uinput.Key7,
+	'8':  uinput.Key8,
+	'9':  uinput.Key9,
+	' ':  uinput.KeySpace,
+	'\n': uinput.KeyEnter,
+	'-':  uinput.KeyMinus,
+	'=':  uinput.KeyEqual,
+	'[':  uinput.KeyLeftbrace,
+	']':  uinput.KeyRightbrace,
+	';':  uinput.KeySemicolon,
+	'\'': uinput.KeyApostrophe,
+	'`':  uinput.KeyGrave,
+	'\\': uinput.KeyBackslash,
+	',':  uinput.KeyComma,
+	'.':  uinput.KeyDot,
+	'/':  uinput.KeySlash,
+}
+
+var shiftRuneMap = map[rune]rune{
+	'!': '1',
+	'@': '2',
+	'#': '3',
+	'$': '4',
+	'%': '5',
+	'^': '6',
+	'&': '7',
+	'*': '8',
+	'(': '9',
+	')': '0',
+	'_': '-',
+	'+': '=',
+	'{': '[',
+	'}': ']',
+	'|': '\\',
+	':': ';',
+	'"': '\'',
+	'<': ',',
+	'>': '.',
+	'?': '/',
+	'~': '`',
+}
+
 func (s *LinuxSimulator) typeChar(char rune) {
 	if s.keyboard == nil {
 		return
 	}
-	if char >= 'a' && char <= 'z' {
-		code := uinput.KeyA + int(char-'a')
-		_ = s.keyboard.KeyPress(code)
-	} else if char >= 'A' && char <= 'Z' {
-		code := uinput.KeyA + int(char-'A')
+	accentMap := map[rune]struct {
+		vowelCode int
+		shifted   bool
+	}{
+		'á': {uinput.KeyA, false},
+		'é': {uinput.KeyE, false},
+		'í': {uinput.KeyI, false},
+		'ó': {uinput.KeyO, false},
+		'ú': {uinput.KeyU, false},
+		'Á': {uinput.KeyA, true},
+		'É': {uinput.KeyE, true},
+		'Í': {uinput.KeyI, true},
+		'Ó': {uinput.KeyO, true},
+		'Ú': {uinput.KeyU, true},
+	}
+	if char == 'ñ' {
+		_ = s.keyboard.KeyPress(uinput.KeySemicolon)
+	} else if char == 'Ñ' {
 		_ = s.keyboard.KeyDown(uinput.KeyLeftshift)
-		_ = s.keyboard.KeyPress(code)
+		_ = s.keyboard.KeyPress(uinput.KeySemicolon)
 		_ = s.keyboard.KeyUp(uinput.KeyLeftshift)
-	} else if char >= '1' && char <= '9' {
-		code := uinput.Key1 + int(char-'1')
-		_ = s.keyboard.KeyPress(code)
-	} else if char == '0' {
-		_ = s.keyboard.KeyPress(uinput.Key0)
-	} else if char == ' ' {
-		_ = s.keyboard.KeyPress(uinput.KeySpace)
-	} else if char == '\n' {
-		_ = s.keyboard.KeyPress(uinput.KeyEnter)
-	} else if char == '-' {
-		_ = s.keyboard.KeyPress(uinput.KeyMinus)
-	} else if char == '.' {
-		_ = s.keyboard.KeyPress(uinput.KeyDot)
-	} else if char == ',' {
-		_ = s.keyboard.KeyPress(uinput.KeyComma)
-	} else if char == '/' {
-		_ = s.keyboard.KeyPress(uinput.KeySlash)
+	} else if info, ok := accentMap[char]; ok {
+		_ = s.keyboard.KeyPress(uinput.KeyLeftbrace)
+		if info.shifted {
+			_ = s.keyboard.KeyDown(uinput.KeyLeftshift)
+			_ = s.keyboard.KeyPress(info.vowelCode)
+			_ = s.keyboard.KeyUp(uinput.KeyLeftshift)
+		} else {
+			_ = s.keyboard.KeyPress(info.vowelCode)
+		}
+	} else if char >= 'a' && char <= 'z' {
+		if code, ok := runeToKey[char]; ok {
+			_ = s.keyboard.KeyPress(code)
+		}
+	} else if char >= 'A' && char <= 'Z' {
+		lower := char - 'A' + 'a'
+		if code, ok := runeToKey[lower]; ok {
+			_ = s.keyboard.KeyDown(uinput.KeyLeftshift)
+			_ = s.keyboard.KeyPress(code)
+			_ = s.keyboard.KeyUp(uinput.KeyLeftshift)
+		}
+	} else if baseChar, isShifted := shiftRuneMap[char]; isShifted {
+		if code, ok := runeToKey[baseChar]; ok {
+			_ = s.keyboard.KeyDown(uinput.KeyLeftshift)
+			_ = s.keyboard.KeyPress(code)
+			_ = s.keyboard.KeyUp(uinput.KeyLeftshift)
+		}
+	} else {
+		if code, ok := runeToKey[char]; ok {
+			_ = s.keyboard.KeyPress(code)
+		}
 	}
 }
 
@@ -349,9 +451,7 @@ func (s *LinuxSimulator) KeyCombo(modifier, key string) {
 		var keyCode int
 		if len(key) == 1 {
 			char := rune(strings.ToLower(key)[0])
-			if char >= 'a' && char <= 'z' {
-				keyCode = uinput.KeyA + int(char-'a')
-			}
+			keyCode = runeToKey[char]
 		} else {
 			keyCode = keyMap[key]
 		}
