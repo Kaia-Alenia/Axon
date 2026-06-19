@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"embed"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/fs"
 	"math"
@@ -23,7 +24,10 @@ import (
 var webFS embed.FS
 
 func setupADBReverse() {
-	_ = exec.Command("adb", "reverse", "tcp:6969", "tcp:6969").Run()
+	portStr := fmt.Sprintf("tcp:%d", port)
+	if err := exec.Command("adb", "reverse", portStr, portStr).Run(); err != nil {
+		fmt.Printf("[ADB] Warning: failed to setup adb reverse for port %d: %v\n", port, err)
+	}
 }
 
 func getRGBColor(phase float64) (int, int, int) {
@@ -103,6 +107,8 @@ var (
 	activeClientMu    sync.RWMutex
 	activeToken       string
 	simulator         InputSimulator
+	port              int
+	udpPort           int
 )
 
 type ClientMessage struct {
@@ -290,7 +296,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 }
 
 func startUDPServer() {
-	addr, err := net.ResolveUDPAddr("udp", ":6970")
+	addr, err := net.ResolveUDPAddr("udp", fmt.Sprintf(":%d", udpPort))
 	if err != nil {
 		fmt.Println("Error resolving UDP address:", err)
 		return
@@ -368,18 +374,23 @@ func printQRRainbow(qrStr string) {
 }
 
 func startADBKeepalive() {
+	portStr := fmt.Sprintf("tcp:%d", port)
 	for {
 		time.Sleep(3 * time.Second)
 		activeClientMu.RLock()
 		hasClient := activeClientIP != ""
 		activeClientMu.RUnlock()
 		if !hasClient {
-			_ = exec.Command("adb", "reverse", "tcp:6969", "tcp:6969").Run()
+			_ = exec.Command("adb", "reverse", portStr, portStr).Run()
 		}
 	}
 }
 
 func main() {
+	flag.IntVar(&port, "port", 6969, "TCP/Websocket port to listen on")
+	flag.IntVar(&udpPort, "udp-port", 6970, "UDP port to listen on")
+	flag.Parse()
+
 	go startADBKeepalive()
 	simulator = NewSimulator()
 	defer simulator.Close()
@@ -393,7 +404,7 @@ func main() {
 	}
 
 	activeToken = generateToken()
-	addr := ip + ":6969"
+	addr := fmt.Sprintf("%s:%d", ip, port)
 	url := fmt.Sprintf("http://%s/?token=%s", addr, activeToken)
 
 	lineDelay := 55 * time.Millisecond
@@ -420,13 +431,13 @@ func main() {
 	printLine(colorizeRainbow("    ────────────────────────────────────────────────────", 0.5), lineDelay)
 	time.Sleep(30 * time.Millisecond)
 	printLine(colorizeRainbow(fmt.Sprintf("    ADDRESS : %s", ip), 0.5), lineDelay)
-	printLine(colorizeRainbow("    PORTS   : 6969 (TCP/WS)  ·  6970 (UDP)", 0.5), lineDelay)
+	printLine(colorizeRainbow(fmt.Sprintf("    PORTS   : %d (TCP/WS)  ·  %d (UDP)", port, udpPort), 0.5), lineDelay)
 	printLine(colorizeRainbow("    SEC TOKEN : "+activeToken, 0.5), lineDelay)
 	time.Sleep(30 * time.Millisecond)
 	printLine(colorizeRainbow("    ────────────────────────────────────────────────────", 0.5), lineDelay)
 	time.Sleep(30 * time.Millisecond)
 	printLine(colorizeRainbow("    [WiFi ]   Connect the AXON app to the displayed IP", 0.5), lineDelay)
-	printLine(colorizeRainbow("    [USB  ]   Active ADB redirection  →  port 6969", 0.5), lineDelay)
+	printLine(colorizeRainbow(fmt.Sprintf("    [USB  ]   Active ADB redirection  →  port %d", port), 0.5), lineDelay)
 	printLine(colorizeRainbow("    [BT   ]   Use the AXON app → Bluetooth mode from Android", 0.5), lineDelay)
 	time.Sleep(30 * time.Millisecond)
 	printLine(colorizeRainbow("    ────────────────────────────────────────────────────", 0.5), lineDelay)
@@ -459,7 +470,7 @@ func main() {
 	http.Handle("/", http.FileServer(http.FS(subFS)))
 	http.HandleFunc("/ws", handleWebSocket)
 
-	err = http.ListenAndServe(":6969", nil)
+	err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 	if err != nil {
 		fmt.Println("Error starting the server:", err)
 		os.Exit(1)

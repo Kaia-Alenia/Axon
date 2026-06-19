@@ -50,6 +50,11 @@ func initSimulator() InputSimulator {
 	if err != nil {
 		fmt.Println("Warning: uinput keyboard failed, using xdotool fallback:", err)
 	}
+	if s.mouse == nil || s.keyboard == nil {
+		if _, err := exec.LookPath("xdotool"); err != nil {
+			fmt.Println("Warning: xdotool is not installed. Fallback input simulation will fail.")
+		}
+	}
 	go s.loop()
 	return s
 }
