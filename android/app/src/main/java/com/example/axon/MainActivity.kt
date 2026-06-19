@@ -1,5 +1,6 @@
 package com.example.axon
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -42,6 +43,17 @@ class MainActivity : ComponentActivity(), WebSocketClient.WebSocketConnectionLis
     private var currentScreen by mutableStateOf(AppScreen.Start)
     private var connectionError by mutableStateOf("")
 
+    override fun attachBaseContext(newBase: Context) {
+        val prefs = newBase.getSharedPreferences("axon_prefs", MODE_PRIVATE)
+        val lang = prefs.getString("language", Locale.getDefault().language) ?: "es"
+        val locale = Locale(lang)
+        Locale.setDefault(locale)
+        val config = Configuration(newBase.resources.configuration)
+        config.setLocale(locale)
+        val context = newBase.createConfigurationContext(config)
+        super.attachBaseContext(context)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
@@ -50,94 +62,79 @@ class MainActivity : ComponentActivity(), WebSocketClient.WebSocketConnectionLis
         
         enableEdgeToEdge()
         setContent {
-            var currentLocale by remember { mutableStateOf(Locale.getDefault()) }
-            val context = LocalContext.current
+            val prefs = remember { getSharedPreferences("axon_prefs", MODE_PRIVATE) }
+            val currentLanguage = remember { prefs.getString("language", Locale.getDefault().language) ?: "es" }
 
-            val localizedContext = remember(currentLocale) {
-                val locale = currentLocale
-                Locale.setDefault(locale)
-                val config = Configuration(context.resources.configuration)
-                config.setLocale(locale)
-                val configContext = context.createConfigurationContext(config)
-                object : android.content.ContextWrapper(context) {
-                    override fun getResources(): android.content.res.Resources = configContext.resources
-                    override fun getAssets(): android.content.res.AssetManager = configContext.assets
-                }
-            }
-
-            CompositionLocalProvider(
-                LocalContext provides localizedContext,
-                LocalConfiguration provides localizedContext.resources.configuration
-            ) {
-                AxonTheme {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.background
-                    ) {
-                        Crossfade(targetState = currentScreen, label = "screenTransition") { screen ->
-                            when (screen) {
-                                AppScreen.Start -> {
-                                    StartScreen(
-                                        onStart = {
-                                            currentScreen = AppScreen.Connect
-                                        },
-                                        currentLanguage = currentLocale.language,
-                                        onToggleLanguage = {
-                                            currentLocale = if (currentLocale.language == "es") Locale("en") else Locale("es")
-                                        }
-                                    )
-                                }
-                                AppScreen.Connect -> {
-                                    ConnectScreen(
-                                        onConnect = { url ->
-                                            connectionError = ""
-                                            activeClient = webSocketClient
-                                            webSocketClient?.connect(url)
-                                        },
-                                        onConnectBluetooth = { mac ->
-                                            connectionError = ""
-                                            activeClient = bluetoothClient
-                                            bluetoothClient?.connect(mac)
-                                        },
-                                        onScanQr = {
-                                            currentScreen = AppScreen.Scan
-                                        },
-                                        onBack = {
-                                            currentScreen = AppScreen.Start
-                                        },
-                                        errorMessage = connectionError
-                                    )
-                                }
-                                AppScreen.Scan -> {
-                                    QrScannerScreen(
-                                        onQrDetected = { url ->
-                                            currentScreen = AppScreen.Connect
-                                            connectionError = ""
-                                            val wsUrl = try {
-                                                val uri = java.net.URI(url)
-                                                val query = if (uri.rawQuery != null) "?${uri.rawQuery}" else ""
-                                                "ws://${uri.host}:${uri.port}/ws$query"
-                                            } catch (e: Exception) {
-                                                url.replace("http://", "ws://").replace("/?", "/ws?").replace("http://", "ws://")
-                                            }
-                                            activeClient = webSocketClient
-                                            webSocketClient?.connect(wsUrl)
-                                        },
-                                        onBack = {
-                                            currentScreen = AppScreen.Connect
-                                        }
-                                    )
-                                }
-                                AppScreen.Control -> {
-                                    activeClient?.let { client ->
-                                        MainScreen(
-                                            client = client,
-                                            onDisconnect = {
-                                                client.disconnect()
-                                                currentScreen = AppScreen.Start
-                                            }
-                                        )
+            AxonTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    Crossfade(targetState = currentScreen, label = "screenTransition") { screen ->
+                        when (screen) {
+                            AppScreen.Start -> {
+                                StartScreen(
+                                    onStart = {
+                                        currentScreen = AppScreen.Connect
+                                    },
+                                    currentLanguage = currentLanguage,
+                                    onToggleLanguage = {
+                                        val newLang = if (currentLanguage == "es") "en" else "es"
+                                        prefs.edit().putString("language", newLang).apply()
+                                        recreate()
                                     }
+                                )
+                            }
+                            AppScreen.Connect -> {
+                                ConnectScreen(
+                                    onConnect = { url ->
+                                        connectionError = ""
+                                        activeClient = webSocketClient
+                                        webSocketClient?.connect(url)
+                                    },
+                                    onConnectBluetooth = { mac ->
+                                        connectionError = ""
+                                        activeClient = bluetoothClient
+                                        bluetoothClient?.connect(mac)
+                                    },
+                                    onScanQr = {
+                                        currentScreen = AppScreen.Scan
+                                    },
+                                    onBack = {
+                                        currentScreen = AppScreen.Start
+                                    },
+                                    errorMessage = connectionError
+                                )
+                            }
+                            AppScreen.Scan -> {
+                                QrScannerScreen(
+                                    onQrDetected = { url ->
+                                        currentScreen = AppScreen.Connect
+                                        connectionError = ""
+                                        val wsUrl = try {
+                                            val uri = java.net.URI(url)
+                                            val query = if (uri.rawQuery != null) "?${uri.rawQuery}" else ""
+                                            "ws://${uri.host}:${uri.port}/ws$query"
+                                        } catch (e: Exception) {
+                                            url.replace("http://", "ws://").replace("/?", "/ws?").replace("http://", "ws://")
+                                        }
+                                        activeClient = webSocketClient
+                                        webSocketClient?.connect(wsUrl)
+                                    },
+                                    onBack = {
+                                        currentScreen = AppScreen.Connect
+                                    }
+                                )
+                            }
+                            AppScreen.Control -> {
+                                activeClient?.let { client ->
+                                    MainScreen(
+                                        client = client,
+                                        onDisconnect = {
+                                            client.disconnect()
+                                            currentScreen = AppScreen.Start
+                                        }
+                                    )
                                 }
                             }
                         }
