@@ -7,6 +7,9 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,6 +17,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -76,15 +81,18 @@ enum class ConnectionMode {
     WiFi, USB, Bluetooth
 }
 
-private val CBg = Color(0xFF0B1120)
-private val CPrimary = Color(0xFF3B82F6)
-private val CTextWhite = Color(0xFFF9FAFB)
-private val CTextSlate = Color(0xFF9CA3AF)
-private val CCardBg = Color(0xFF111827)
-private val CBorder = Color(0xFF1F2937)
-private val CBorderActive = Color(0xFF3B82F6)
-private val CError = Color(0xFFEF4444)
-private val CSuccess = Color(0xFF34D399)
+private val BgGradStart  = Color(0xFF0F172A)
+private val BgGradEnd    = Color(0xFF020617)
+private val AccentGlow   = Color(0xFF1E3A8A)
+private val BlueAccent   = Color(0xFF3B82F6)
+private val VioletAccent = Color(0xFF8B5CF6)
+private val TextPrimary  = Color(0xFFF9FAFB)
+private val TextSecond   = Color(0xFF94A3B8)
+private val CardBg       = Color(0xFF0F172A)
+private val CardInner    = Color(0xFF1E293B)
+private val BorderColor  = Color(0xFF334155)
+private val ErrorColor   = Color(0xFFEF4444)
+private val SuccessColor = Color(0xFF10B981)
 
 @Composable
 fun ConnectScreen(
@@ -137,61 +145,73 @@ fun ConnectScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(CBg)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(BgGradStart, BgGradEnd)
+                )
+            )
             .statusBarsPadding()
             .navigationBarsPadding()
             .padding(horizontal = 24.dp)
     ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawCircle(
+                color = AccentGlow.copy(alpha = 0.25f),
+                radius = size.minDimension * 0.6f,
+                center = Offset(size.width / 2f, size.height * 0.2f)
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 20.dp),
+                    .padding(bottom = 24.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+              ) {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(CCardBg)
-                        .border(1.dp, CBorder, RoundedCornerShape(10.dp))
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color.White.copy(alpha = 0.06f))
+                        .border(1.dp, BorderColor, RoundedCornerShape(14.dp))
                         .clickable { onBack() },
                     contentAlignment = Alignment.Center
                 ) {
                     Canvas(modifier = Modifier.size(16.dp)) {
                         val w = size.width
                         val h = size.height
-                        drawLine(Color.White, start = Offset(w, h / 2), end = Offset(0f, h / 2), strokeWidth = 2.dp.toPx())
-                        drawLine(Color.White, start = Offset(w * 0.4f, 0f), end = Offset(0f, h / 2), strokeWidth = 2.dp.toPx())
-                        drawLine(Color.White, start = Offset(w * 0.4f, h), end = Offset(0f, h / 2), strokeWidth = 2.dp.toPx())
+                        drawLine(Color.White, start = Offset(w, h / 2), end = Offset(0f, h / 2), strokeWidth = 2.5.dp.toPx())
+                        drawLine(Color.White, start = Offset(w * 0.45f, 0f), end = Offset(0f, h / 2), strokeWidth = 2.5.dp.toPx())
+                        drawLine(Color.White, start = Offset(w * 0.45f, h), end = Offset(0f, h / 2), strokeWidth = 2.5.dp.toPx())
                     }
                 }
                 Text(
                     text = stringResource(id = R.string.connection_title),
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = CTextWhite,
+                    fontWeight = FontWeight.Black,
+                    color = TextPrimary,
                     letterSpacing = 2.sp
                 )
-                Spacer(modifier = Modifier.width(40.dp))
+                Spacer(modifier = Modifier.width(44.dp))
             }
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 20.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(CCardBg)
-                    .border(1.dp, CBorder, RoundedCornerShape(12.dp))
-                    .padding(4.dp),
+                    .padding(bottom = 24.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White.copy(alpha = 0.05f))
+                    .border(1.dp, BorderColor, RoundedCornerShape(16.dp))
+                    .padding(6.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 listOf(ConnectionMode.WiFi, ConnectionMode.USB, ConnectionMode.Bluetooth).forEach { m ->
@@ -204,15 +224,21 @@ fun ConnectScreen(
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(if (selected) CPrimary else Color.Transparent)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                if (selected) {
+                                    Brush.horizontalGradient(colors = listOf(BlueAccent, VioletAccent))
+                                } else {
+                                    Brush.horizontalGradient(colors = listOf(Color.Transparent, Color.Transparent))
+                                }
+                            )
                             .clickable { mode = m }
-                            .padding(vertical = 10.dp),
+                            .padding(vertical = 12.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = modeLabel,
-                            color = if (selected) Color.White else CTextSlate,
+                            color = if (selected) Color.White else TextSecond,
                             fontSize = 13.sp,
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
                         )
@@ -223,9 +249,9 @@ fun ConnectScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, CBorder, RoundedCornerShape(16.dp)),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = CCardBg)
+                    .border(1.dp, BorderColor, RoundedCornerShape(24.dp)),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = CardBg.copy(alpha = 0.9f))
             ) {
                 Column(
                     modifier = Modifier
@@ -237,25 +263,25 @@ fun ConnectScreen(
                         ConnectionMode.WiFi -> {
                             Text(
                                 text = stringResource(id = R.string.wifi_recommended),
-                                color = CTextWhite,
+                                color = TextPrimary,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.align(Alignment.Start)
                             )
                             if (tokenInput.isNotEmpty()) {
-                                Spacer(modifier = Modifier.height(10.dp))
+                                Spacer(modifier = Modifier.height(12.dp))
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(Color(0x1A238636), RoundedCornerShape(8.dp))
-                                        .border(1.dp, Color(0x33238636), RoundedCornerShape(8.dp))
-                                        .padding(10.dp)
+                                        .background(SuccessColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+                                        .border(1.dp, SuccessColor.copy(alpha = 0.25f), RoundedCornerShape(12.dp))
+                                        .padding(12.dp)
                                 ) {
                                     Text(
                                         text = stringResource(id = R.string.saved_token_msg),
-                                        color = Color(0xFF3FB950),
+                                        color = SuccessColor,
                                         fontSize = 11.sp,
-                                        fontWeight = FontWeight.Medium
+                                        fontWeight = FontWeight.SemiBold
                                     )
                                 }
                             }
@@ -263,48 +289,49 @@ fun ConnectScreen(
                             OutlinedTextField(
                                 value = ipInput,
                                 onValueChange = { ipInput = it },
-                                label = { Text(stringResource(id = R.string.pc_ip_label), color = CTextSlate) },
-                                placeholder = { Text(stringResource(id = R.string.pc_ip_placeholder), color = Color(0xFF484F58)) },
+                                label = { Text(stringResource(id = R.string.pc_ip_label), color = TextSecond) },
+                                placeholder = { Text(stringResource(id = R.string.pc_ip_placeholder), color = BorderColor) },
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true,
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = CPrimary,
-                                    unfocusedBorderColor = CBorderActive,
-                                    focusedLabelColor = CPrimary,
-                                    unfocusedLabelColor = CTextSlate,
-                                    focusedTextColor = CTextWhite,
-                                    unfocusedTextColor = CTextWhite,
-                                    cursorColor = CPrimary
+                                    focusedBorderColor = BlueAccent,
+                                    unfocusedBorderColor = BorderColor,
+                                    focusedLabelColor = BlueAccent,
+                                    unfocusedLabelColor = TextSecond,
+                                    focusedTextColor = TextPrimary,
+                                    unfocusedTextColor = TextPrimary,
+                                    cursorColor = BlueAccent
                                 ),
-                                shape = RoundedCornerShape(12.dp)
+                                shape = RoundedCornerShape(14.dp)
                             )
-                            Spacer(modifier = Modifier.height(10.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
                             OutlinedTextField(
                                 value = tokenInput,
                                 onValueChange = { tokenInput = it },
-                                label = { Text(stringResource(id = R.string.token_label), color = CTextSlate) },
-                                placeholder = { Text(stringResource(id = R.string.token_placeholder), color = Color(0xFF484F58)) },
+                                label = { Text(stringResource(id = R.string.token_label), color = TextSecond) },
+                                placeholder = { Text(stringResource(id = R.string.token_placeholder), color = BorderColor) },
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true,
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = CPrimary,
-                                    unfocusedBorderColor = CBorderActive,
-                                    focusedLabelColor = CPrimary,
-                                    unfocusedLabelColor = CTextSlate,
-                                    focusedTextColor = CTextWhite,
-                                    unfocusedTextColor = CTextWhite,
-                                    cursorColor = CPrimary
+                                    focusedBorderColor = BlueAccent,
+                                    unfocusedBorderColor = BorderColor,
+                                    focusedLabelColor = BlueAccent,
+                                    unfocusedLabelColor = TextSecond,
+                                    focusedTextColor = TextPrimary,
+                                    unfocusedTextColor = TextPrimary,
+                                    cursorColor = BlueAccent
                                 ),
-                                shape = RoundedCornerShape(12.dp)
+                                shape = RoundedCornerShape(14.dp)
                             )
-                            Spacer(modifier = Modifier.height(6.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = stringResource(id = R.string.token_saved_hint),
-                                color = CTextSlate,
-                                fontSize = 10.sp,
-                                modifier = Modifier.align(Alignment.Start)
+                                color = TextSecond,
+                                fontSize = 11.sp,
+                                modifier = Modifier.align(Alignment.Start),
+                                lineHeight = 16.sp
                             )
-                            Spacer(modifier = Modifier.height(20.dp))
+                            Spacer(modifier = Modifier.height(24.dp))
                             Button(
                                 onClick = {
                                     val cleanIp = ipInput.trim()
@@ -317,147 +344,174 @@ fun ConnectScreen(
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(54.dp),
-                                shape = RoundedCornerShape(12.dp),
+                                    .height(56.dp),
+                                shape = RoundedCornerShape(16.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = CPrimary,
+                                    containerColor = Color.Transparent,
                                     contentColor = Color.White
-                                )
+                                ),
+                                contentPadding = PaddingValues()
                             ) {
-                                Text(stringResource(id = R.string.connect_wifi), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(
+                                            Brush.horizontalGradient(
+                                                colors = listOf(BlueAccent, VioletAccent)
+                                            )
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(stringResource(id = R.string.connect_wifi), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                                }
                             }
-                            Spacer(modifier = Modifier.height(10.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
                             Button(
                                 onClick = onScanQr,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(50.dp)
-                                    .border(1.dp, CBorderActive, RoundedCornerShape(12.dp)),
-                                shape = RoundedCornerShape(12.dp),
+                                    .height(52.dp)
+                                    .border(1.dp, BlueAccent.copy(alpha = 0.6f), RoundedCornerShape(16.dp)),
+                                shape = RoundedCornerShape(16.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = CCardBg,
-                                    contentColor = CTextWhite
+                                    containerColor = Color.White.copy(alpha = 0.05f),
+                                    contentColor = TextPrimary
                                 )
                             ) {
-                                Text(stringResource(id = R.string.scan_qr), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                                Text(stringResource(id = R.string.scan_qr), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                             }
                         }
 
                         ConnectionMode.USB -> {
                             Text(
                                 text = stringResource(id = R.string.usb_min_latency),
-                                color = CTextWhite,
+                                color = TextPrimary,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.align(Alignment.Start)
                             )
-                            Spacer(modifier = Modifier.height(10.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color(0x1A1F6FEB), RoundedCornerShape(10.dp))
-                                    .border(1.dp, Color(0x331F6FEB), RoundedCornerShape(10.dp))
-                                    .padding(10.dp)
+                                    .background(BlueAccent.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+                                    .border(1.dp, BlueAccent.copy(alpha = 0.25f), RoundedCornerShape(12.dp))
+                                    .padding(12.dp)
                             ) {
-                                  Text(
-                                      text = stringResource(id = R.string.usb_desc),
-                                      color = Color(0xFF79C0FF),
-                                      fontSize = 11.sp
-                                  )
+                                Text(
+                                    text = stringResource(id = R.string.usb_desc),
+                                    color = BlueAccent,
+                                    fontSize = 12.sp,
+                                    lineHeight = 16.sp
+                                )
                             }
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = stringResource(id = R.string.usb_instructions),
-                                color = CTextSlate,
-                                fontSize = 12.sp,
-                                modifier = Modifier.padding(bottom = 16.dp)
+                                color = TextSecond,
+                                fontSize = 13.sp,
+                                modifier = Modifier.padding(bottom = 20.dp),
+                                lineHeight = 18.sp
                             )
                             Button(
                                 onClick = { onConnect("ws://127.0.0.1:6969/ws") },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(54.dp),
-                                shape = RoundedCornerShape(12.dp),
+                                    .height(56.dp),
+                                shape = RoundedCornerShape(16.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = CPrimary,
+                                    containerColor = Color.Transparent,
                                     contentColor = Color.White
-                                )
+                                ),
+                                contentPadding = PaddingValues()
                             ) {
-                                Text(stringResource(id = R.string.connect_usb), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(
+                                            Brush.horizontalGradient(
+                                                colors = listOf(BlueAccent, VioletAccent)
+                                            )
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(stringResource(id = R.string.connect_usb), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                                }
                             }
                         }
 
                         ConnectionMode.Bluetooth -> {
                             Text(
                                 text = stringResource(id = R.string.bt_no_wifi),
-                                color = CTextWhite,
+                                color = TextPrimary,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.align(Alignment.Start)
                             )
-                            Spacer(modifier = Modifier.height(10.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color(0x1A8B949E), RoundedCornerShape(10.dp))
-                                    .border(1.dp, CBorderActive, RoundedCornerShape(10.dp))
-                                    .padding(10.dp)
+                                    .background(TextSecond.copy(alpha = 0.08f), RoundedCornerShape(12.dp))
+                                    .border(1.dp, BorderColor, RoundedCornerShape(12.dp))
+                                    .padding(12.dp)
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.bt_desc),
-                                    color = CTextSlate,
-                                    fontSize = 11.sp
+                                    color = TextSecond,
+                                    fontSize = 12.sp,
+                                    lineHeight = 16.sp
                                 )
                             }
-                            Spacer(modifier = Modifier.height(14.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
                             if (bluetoothAdapter == null) {
                                 Text(
                                     text = stringResource(id = R.string.bt_not_available),
-                                    color = CError,
+                                    color = ErrorColor,
                                     fontSize = 13.sp,
                                     textAlign = TextAlign.Center
                                 )
                             } else if (!bluetoothPermissionGranted && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                                 Text(
                                     text = stringResource(id = R.string.bt_permission_required),
-                                    color = CTextSlate,
-                                    fontSize = 12.sp,
+                                    color = TextSecond,
+                                    fontSize = 13.sp,
                                     textAlign = TextAlign.Center,
-                                    modifier = Modifier.padding(bottom = 12.dp)
+                                    modifier = Modifier.padding(bottom = 16.dp)
                                 )
                                 Button(
                                     onClick = { permissionLauncher.launch(Manifest.permission.BLUETOOTH_CONNECT) },
-                                    colors = ButtonDefaults.buttonColors(containerColor = CPrimary),
-                                    shape = RoundedCornerShape(10.dp)
+                                    colors = ButtonDefaults.buttonColors(containerColor = BlueAccent),
+                                    shape = RoundedCornerShape(12.dp)
                                 ) {
-                                    Text(stringResource(id = R.string.grant_permission), color = Color.White)
+                                    Text(stringResource(id = R.string.grant_permission), color = Color.White, fontWeight = FontWeight.Bold)
                                 }
                             } else {
                                 Text(
                                     text = stringResource(id = R.string.paired_devices),
-                                    color = CTextWhite,
+                                    color = TextPrimary,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier
                                         .align(Alignment.Start)
-                                        .padding(bottom = 8.dp)
+                                        .padding(bottom = 10.dp)
                                 )
                                 if (pairedDevices.isEmpty()) {
                                     Text(
                                         text = stringResource(id = R.string.no_devices_found),
-                                        color = Color(0xFF484F58),
-                                        fontSize = 12.sp,
+                                        color = TextSecond,
+                                        fontSize = 13.sp,
                                         textAlign = TextAlign.Center,
-                                        modifier = Modifier.padding(vertical = 12.dp)
+                                        modifier = Modifier.padding(vertical = 16.dp)
                                     )
                                 } else {
                                     Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .clip(RoundedCornerShape(12.dp))
-                                            .background(CBg)
-                                            .border(1.dp, CBorder, RoundedCornerShape(12.dp))
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .background(CardInner)
+                                            .border(1.dp, BorderColor, RoundedCornerShape(16.dp))
                                             .padding(4.dp)
                                     ) {
                                         pairedDevices.forEach { device ->
@@ -467,26 +521,26 @@ fun ConnectScreen(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .clickable { onConnectBluetooth(deviceAddress) }
-                                                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                                                    .padding(horizontal = 16.dp, vertical = 12.dp),
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
                                                 Column(modifier = Modifier.weight(1f)) {
                                                     Text(
                                                         text = deviceName ?: "Unknown",
-                                                        color = CTextWhite,
-                                                        fontSize = 13.sp,
+                                                        color = TextPrimary,
+                                                        fontSize = 14.sp,
                                                         fontWeight = FontWeight.SemiBold
                                                     )
                                                     Text(
                                                         text = deviceAddress,
-                                                        color = CTextSlate,
+                                                        color = TextSecond,
                                                         fontSize = 11.sp
                                                     )
                                                 }
                                                 Text(
                                                     text = stringResource(id = R.string.connect_action),
-                                                    color = CPrimary,
-                                                    fontSize = 12.sp,
+                                                    color = BlueAccent,
+                                                    fontSize = 13.sp,
                                                     fontWeight = FontWeight.Bold
                                                 )
                                             }
@@ -494,64 +548,82 @@ fun ConnectScreen(
                                     }
                                 }
 
-                                Spacer(modifier = Modifier.height(14.dp))
+                                Spacer(modifier = Modifier.height(16.dp))
                                 Text(
                                     text = stringResource(id = R.string.or_enter_mac),
-                                    color = Color(0xFF484F58),
-                                    fontSize = 11.sp,
+                                    color = TextSecond,
+                                    fontSize = 12.sp,
                                     textAlign = TextAlign.Center,
-                                    modifier = Modifier.padding(vertical = 4.dp)
+                                    modifier = Modifier.padding(vertical = 6.dp)
                                 )
                                 OutlinedTextField(
                                     value = btMac,
                                     onValueChange = { btMac = it },
-                                    label = { Text(stringResource(id = R.string.bt_mac_label), color = CTextSlate) },
-                                    placeholder = { Text(stringResource(id = R.string.bt_mac_placeholder), color = Color(0xFF484F58)) },
+                                    label = { Text(stringResource(id = R.string.bt_mac_label), color = TextSecond) },
+                                    placeholder = { Text(stringResource(id = R.string.bt_mac_placeholder), color = BorderColor) },
                                     modifier = Modifier.fillMaxWidth(),
                                     singleLine = true,
                                     colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = CPrimary,
-                                        unfocusedBorderColor = CBorderActive,
-                                        focusedLabelColor = CPrimary,
-                                        unfocusedLabelColor = CTextSlate,
-                                        focusedTextColor = CTextWhite,
-                                        unfocusedTextColor = CTextWhite,
-                                        cursorColor = CPrimary
+                                        focusedBorderColor = BlueAccent,
+                                        unfocusedBorderColor = BorderColor,
+                                        focusedLabelColor = BlueAccent,
+                                        unfocusedLabelColor = TextSecond,
+                                        focusedTextColor = TextPrimary,
+                                        unfocusedTextColor = TextPrimary,
+                                        cursorColor = BlueAccent
                                     ),
-                                    shape = RoundedCornerShape(12.dp)
+                                    shape = RoundedCornerShape(14.dp)
                                 )
-                                Spacer(modifier = Modifier.height(14.dp))
+                                Spacer(modifier = Modifier.height(16.dp))
                                 Button(
                                     onClick = { if (btMac.isNotEmpty()) onConnectBluetooth(btMac.trim()) },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(50.dp),
-                                    shape = RoundedCornerShape(12.dp),
+                                        .height(52.dp),
+                                    shape = RoundedCornerShape(16.dp),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = CPrimary,
+                                        containerColor = Color.Transparent,
                                         contentColor = Color.White
-                                    )
+                                    ),
+                                    contentPadding = PaddingValues()
                                 ) {
-                                    Text(stringResource(id = R.string.connect_manually), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(
+                                                Brush.horizontalGradient(
+                                                    colors = listOf(BlueAccent, VioletAccent)
+                                                )
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(stringResource(id = R.string.connect_manually), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                    }
                                 }
                             }
                         }
                     }
 
-                    if (errorMessage.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(18.dp))
-                        Text(
-                            text = errorMessage,
-                            color = CError,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color(0x1AE74C3C), RoundedCornerShape(10.dp))
-                                .border(1.dp, Color(0x33E74C3C), RoundedCornerShape(10.dp))
-                                .padding(12.dp)
-                        )
+                    AnimatedVisibility(
+                        visible = errorMessage.isNotEmpty(),
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        Column {
+                            Spacer(modifier = Modifier.height(18.dp))
+                            Text(
+                                text = errorMessage,
+                                color = ErrorColor,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(ErrorColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+                                    .border(1.dp, ErrorColor.copy(alpha = 0.25f), RoundedCornerShape(12.dp))
+                                    .padding(12.dp)
+                            )
+                        }
                     }
                 }
             }

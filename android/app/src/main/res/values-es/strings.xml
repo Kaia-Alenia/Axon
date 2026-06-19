@@ -46,4 +46,21 @@
     <string name="scroll_label">DESPLAZAR</string>
     <string name="left_click">Clic izquierdo</string>
     <string name="right_click">Clic derecho</string>
+    <string name="guide_title">Guía de Conexión</string>
+    <string name="guide_wifi_title">Conexión por Wi-Fi</string>
+    <string name="guide_wifi_step">1. Conecta tu teléfono y tu PC a la misma red Wi-Fi.\n2. Inicia el servidor de Axon en tu PC.\n3. Escanea el código QR que se muestra en la terminal de la PC o escribe la IP manualmente en la app.</string>
+    <string name="guide_usb_title">Conexión por USB (ADB)</string>
+    <string name="guide_usb_step">1. Conecta tu teléfono a la PC usando un cable USB.\n2. Habilita la \'Depuración USB\' en las Opciones de Desarrollador del teléfono.\n3. Ejecuta el servidor Axon y presiona \'Conectar por USB\' en la app.</string>
+    <string name="guide_bt_title">Conexión por Bluetooth</string>
+    <string name="guide_bt_step">1. Vincula tu teléfono con tu PC en los ajustes de Bluetooth del sistema.\n2. Selecciona el modo Bluetooth en la app.\n3. Elige tu PC de la lista de dispositivos vinculados para conectar.</string>
+    <string name="license_title">Licencia y Términos</string>
+    <string name="license_software_title">Licencia del Software</string>
+    <string name="license_software_desc">GNU General Public License v3 (GPL v3).</string>
+    <string name="license_assets_title">Licencia de Assets y Música</string>
+    <string name="license_assets_desc">Alenia Studios Standard (CC BY 4.0 + Additional Terms).\n- Reconocimiento: Requerido a Alenia Studios.\n- Sin Reventa: Se prohíbe la redistribución o reventa independiente.\n- Sin IA: Se prohíbe el uso para entrenamiento o datasets de IA.\n- Uso Comercial: Permitido para juegos, videos y proyectos.</string>
+    <string name="license_contact_title">Contacto Oficial</string>
+    <string name="license_contact_desc">contact.aleniastudios@gmail.com</string>
+    <string name="button_guide">Guía</string>
+    <string name="button_license">Licencia</string>
+    <string name="close_action">Cerrar</string>
 </resources>

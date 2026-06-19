@@ -3,27 +3,52 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"os/exec"
 	"strings"
 	"sync"
-	"time"
+
+	"github.com/bendahl/uinput"
 )
+
+var keyMap = map[string]int{
+	"Return":    uinput.KeyEnter,
+	"BackSpace": uinput.KeyBackspace,
+	"space":     uinput.KeySpace,
+	"Escape":    uinput.KeyEsc,
+	"Tab":       uinput.KeyTab,
+	"Up":        uinput.KeyUp,
+	"Down":      uinput.KeyDown,
+	"Left":      uinput.KeyLeft,
+	"Right":     uinput.KeyRight,
+	"Home":      uinput.KeyHome,
+	"End":       uinput.KeyEnd,
+	"Prior":     uinput.KeyPageup,
+	"Next":      uinput.KeyPagedown,
+	"Delete":    uinput.KeyDelete,
+	"F5":        uinput.KeyF5,
+}
 
 type LinuxSimulator struct {
 	mu       sync.Mutex
-	cmd      *exec.Cmd
-	stdin    *bufio.Writer
-	rawStdin io.WriteCloser
+	mouse    uinput.Mouse
+	keyboard uinput.Keyboard
 	ch       chan string
 	closed   bool
 }
 
 func initSimulator() InputSimulator {
 	s := &LinuxSimulator{
-		ch: make(chan string, 100),
+		ch: make(chan string, 200),
+	}
+	var err error
+	s.mouse, err = uinput.CreateMouse("/dev/uinput", []byte("axon-mouse"))
+	if err != nil {
+		fmt.Println("Warning: uinput mouse failed, using xdotool fallback:", err)
+	}
+	s.keyboard, err = uinput.CreateKeyboard("/dev/uinput", []byte("axon-keyboard"))
+	if err != nil {
+		fmt.Println("Warning: uinput keyboard failed, using xdotool fallback:", err)
 	}
 	go s.loop()
 	return s
@@ -42,46 +67,151 @@ func (s *LinuxSimulator) Send(cmdStr string) {
 }
 
 func (s *LinuxSimulator) executeCmd(cmdStr string) {
-	s.mu.Lock()
-	cmd := s.cmd
-	stdin := s.stdin
-	s.mu.Unlock()
-
-	if cmd == nil {
-		newCmd := exec.Command("xdotool", "-")
-		newRawStdin, err := newCmd.StdinPipe()
+	if strings.HasPrefix(cmdStr, "mousemove_relative") {
+		var dx, dy float64
+		_, err := fmt.Sscanf(cmdStr, "mousemove_relative -- %f %f", &dx, &dy)
+		if err == nil {
+			if s.mouse != nil {
+				_ = s.mouse.Move(int32(dx), int32(dy))
+			} else {
+				_ = exec.Command("xdotool", "mousemove_relative", "--", fmt.Sprintf("%d", int32(dx)), fmt.Sprintf("%d", int32(dy))).Run()
+			}
+		}
+	} else if strings.HasPrefix(cmdStr, "click") {
+		var btn string
+		var count int
+		_, err := fmt.Sscanf(cmdStr, "click --repeat %d %s", &count, &btn)
 		if err != nil {
-			time.Sleep(100 * time.Millisecond)
-			return
+			_, err = fmt.Sscanf(cmdStr, "click %s", &btn)
+			count = 1
 		}
-		if err := newCmd.Start(); err != nil {
-			time.Sleep(100 * time.Millisecond)
-			return
+		if err == nil {
+			if s.mouse != nil {
+				for i := 0; i < count; i++ {
+					switch btn {
+					case "1":
+						_ = s.mouse.LeftClick()
+					case "2":
+						_ = s.mouse.MiddleClick()
+					case "3":
+						_ = s.mouse.RightClick()
+					case "4":
+						_ = s.mouse.Wheel(false, 1)
+					case "5":
+						_ = s.mouse.Wheel(false, -1)
+					}
+				}
+			} else {
+				args := []string{"click"}
+				if count > 1 {
+					args = append(args, "--repeat", fmt.Sprintf("%d", count))
+				}
+				args = append(args, btn)
+				_ = exec.Command("xdotool", args...).Run()
+			}
 		}
-		s.mu.Lock()
-		s.cmd = newCmd
-		s.rawStdin = newRawStdin
-		s.stdin = bufio.NewWriter(newRawStdin)
-		cmd = newCmd
-		stdin = s.stdin
-		s.mu.Unlock()
+	} else if strings.HasPrefix(cmdStr, "mousedown") {
+		var btn string
+		_, err := fmt.Sscanf(cmdStr, "mousedown %s", &btn)
+		if err == nil {
+			if s.mouse != nil {
+				switch btn {
+				case "1":
+					_ = s.mouse.LeftPress()
+				case "3":
+					_ = s.mouse.RightPress()
+				}
+			} else {
+				_ = exec.Command("xdotool", "mousedown", btn).Run()
+			}
+		}
+	} else if strings.HasPrefix(cmdStr, "mouseup") {
+		var btn string
+		_, err := fmt.Sscanf(cmdStr, "mouseup %s", &btn)
+		if err == nil {
+			if s.mouse != nil {
+				switch btn {
+				case "1":
+					_ = s.mouse.LeftRelease()
+				case "3":
+					_ = s.mouse.RightRelease()
+				}
+			} else {
+				_ = exec.Command("xdotool", "mouseup", btn).Run()
+			}
+		}
+	} else if strings.HasPrefix(cmdStr, "type") {
+		parts := strings.SplitN(cmdStr, " -- ", 2)
+		if len(parts) == 2 {
+			text := parts[1]
+			if len(text) >= 2 && text[0] == '"' && text[len(text)-1] == '"' {
+				text = text[1 : len(text)-1]
+			}
+			if s.keyboard != nil {
+				for _, char := range text {
+					s.typeChar(char)
+				}
+			} else {
+				_ = exec.Command("xdotool", "type", text).Run()
+			}
+		}
+	} else if strings.HasPrefix(cmdStr, "key ") {
+		key := strings.TrimPrefix(cmdStr, "key ")
+		if strings.Contains(key, "+") {
+			parts := strings.Split(key, "+")
+			if len(parts) == 2 {
+				s.KeyCombo(parts[0], parts[1])
+			}
+		} else {
+			if s.keyboard != nil {
+				if code, ok := keyMap[key]; ok {
+					_ = s.keyboard.KeyPress(code)
+				} else if len(key) == 1 {
+					s.typeChar(rune(key[0]))
+				}
+			} else {
+				xKey := key
+				switch key {
+				case "Prior":
+					xKey = "Page_Up"
+				case "Next":
+					xKey = "Page_Down"
+				}
+				_ = exec.Command("xdotool", "key", xKey).Run()
+			}
+		}
 	}
+}
 
-	_, err := fmt.Fprintln(stdin, cmdStr)
-	if err == nil {
-		err = stdin.Flush()
+func (s *LinuxSimulator) typeChar(char rune) {
+	if s.keyboard == nil {
+		return
 	}
-	if err != nil {
-		s.mu.Lock()
-		if s.cmd == cmd {
-			_ = s.rawStdin.Close()
-			_ = cmd.Process.Kill()
-			_ = cmd.Wait()
-			s.cmd = nil
-			s.stdin = nil
-			s.rawStdin = nil
-		}
-		s.mu.Unlock()
+	if char >= 'a' && char <= 'z' {
+		code := uinput.KeyA + int(char-'a')
+		_ = s.keyboard.KeyPress(code)
+	} else if char >= 'A' && char <= 'Z' {
+		code := uinput.KeyA + int(char-'A')
+		_ = s.keyboard.KeyDown(uinput.KeyLeftshift)
+		_ = s.keyboard.KeyPress(code)
+		_ = s.keyboard.KeyUp(uinput.KeyLeftshift)
+	} else if char >= '1' && char <= '9' {
+		code := uinput.Key1 + int(char-'1')
+		_ = s.keyboard.KeyPress(code)
+	} else if char == '0' {
+		_ = s.keyboard.KeyPress(uinput.Key0)
+	} else if char == ' ' {
+		_ = s.keyboard.KeyPress(uinput.KeySpace)
+	} else if char == '\n' {
+		_ = s.keyboard.KeyPress(uinput.KeyEnter)
+	} else if char == '-' {
+		_ = s.keyboard.KeyPress(uinput.KeyMinus)
+	} else if char == '.' {
+		_ = s.keyboard.KeyPress(uinput.KeyDot)
+	} else if char == ',' {
+		_ = s.keyboard.KeyPress(uinput.KeyComma)
+	} else if char == '/' {
+		_ = s.keyboard.KeyPress(uinput.KeySlash)
 	}
 }
 
@@ -90,7 +220,6 @@ func (s *LinuxSimulator) loop() {
 		if strings.HasPrefix(cmdStr, "mousemove_relative") {
 			var dx, dy float64
 			_, _ = fmt.Sscanf(cmdStr, "mousemove_relative -- %f %f", &dx, &dy)
-			
 			for {
 				var nextCmd string
 				var ok bool
@@ -98,11 +227,9 @@ func (s *LinuxSimulator) loop() {
 				case nextCmd, ok = <-s.ch:
 				default:
 				}
-				
 				if !ok || nextCmd == "" {
 					break
 				}
-				
 				if strings.HasPrefix(nextCmd, "mousemove_relative") {
 					var ndx, ndy float64
 					_, _ = fmt.Sscanf(nextCmd, "mousemove_relative -- %f %f", &ndx, &ndy)
@@ -133,11 +260,9 @@ func (s *LinuxSimulator) loop() {
 				case nextCmd, ok = <-s.ch:
 				default:
 				}
-				
 				if !ok || nextCmd == "" {
 					break
 				}
-				
 				if nextCmd == cmdStr {
 					count++
 				} else {
@@ -203,7 +328,7 @@ func (s *LinuxSimulator) Scroll(direction string) {
 }
 
 func (s *LinuxSimulator) Type(text string) {
-	s.Send(fmt.Sprintf("type -- %q", text))
+	s.Send(fmt.Sprintf("type -- %s", text))
 }
 
 func (s *LinuxSimulator) Key(key string) {
@@ -211,7 +336,45 @@ func (s *LinuxSimulator) Key(key string) {
 }
 
 func (s *LinuxSimulator) KeyCombo(modifier, key string) {
-	s.Send(fmt.Sprintf("key %s+%s", modifier, key))
+	if s.keyboard != nil {
+		modCode := 0
+		switch strings.ToLower(modifier) {
+		case "ctrl":
+			modCode = uinput.KeyLeftctrl
+		case "alt":
+			modCode = uinput.KeyLeftalt
+		case "shift":
+			modCode = uinput.KeyLeftshift
+		}
+		var keyCode int
+		if len(key) == 1 {
+			char := rune(strings.ToLower(key)[0])
+			if char >= 'a' && char <= 'z' {
+				keyCode = uinput.KeyA + int(char-'a')
+			}
+		} else {
+			keyCode = keyMap[key]
+		}
+		if keyCode != 0 {
+			if modCode != 0 {
+				_ = s.keyboard.KeyDown(modCode)
+			}
+			_ = s.keyboard.KeyPress(keyCode)
+			if modCode != 0 {
+				_ = s.keyboard.KeyUp(modCode)
+			}
+		}
+	} else {
+		xKey := key
+		switch key {
+		case "Prior":
+			xKey = "Page_Up"
+		case "Next":
+			xKey = "Page_Down"
+		}
+		combo := fmt.Sprintf("%s+%s", strings.ToLower(modifier), xKey)
+		_ = exec.Command("xdotool", "key", combo).Run()
+	}
 }
 
 func (s *LinuxSimulator) Close() {
@@ -222,17 +385,15 @@ func (s *LinuxSimulator) Close() {
 	}
 	s.closed = true
 	close(s.ch)
-	
-	cmd := s.cmd
-	rawStdin := s.rawStdin
-	s.cmd = nil
-	s.stdin = nil
-	s.rawStdin = nil
+	mouse := s.mouse
+	keyboard := s.keyboard
+	s.mouse = nil
+	s.keyboard = nil
 	s.mu.Unlock()
-
-	if cmd != nil {
-		_ = rawStdin.Close()
-		_ = cmd.Process.Kill()
-		_ = cmd.Wait()
+	if mouse != nil {
+		_ = mouse.Close()
+	}
+	if keyboard != nil {
+		_ = keyboard.Close()
 	}
 }

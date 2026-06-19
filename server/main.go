@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -99,10 +98,11 @@ func getLocalIP() string {
 }
 
 var (
-	activeClientIP string
-	activeClientMu sync.RWMutex
-	activeToken    string
-	simulator      InputSimulator
+	activeClientIP    string
+	activeClientNetIP net.IP
+	activeClientMu    sync.RWMutex
+	activeToken       string
+	simulator         InputSimulator
 )
 
 type ClientMessage struct {
@@ -203,6 +203,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	activeClientMu.Lock()
 	activeClientIP = ip
+	activeClientNetIP = net.ParseIP(ip)
 	activeClientMu.Unlock()
 
 	fmt.Printf("[CONNECTION] Client connected from: %s\n", remoteAddrStr)
@@ -213,6 +214,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		activeClientMu.Lock()
 		if activeClientIP == ip {
 			activeClientIP = ""
+			activeClientNetIP = nil
 		}
 		activeClientMu.Unlock()
 		fmt.Println("[DISCONNECTION] Client disconnected")
@@ -308,39 +310,34 @@ func startUDPServer() {
 		}
 
 		activeClientMu.RLock()
-		clientIP := activeClientIP
+		clientNetIP := activeClientNetIP
 		activeClientMu.RUnlock()
 
-		if clientIP == "" || remoteAddr.IP.String() != clientIP {
+		if clientNetIP == nil || !remoteAddr.IP.Equal(clientNetIP) {
 			continue
 		}
 
-		payload := string(buf[:n])
-		parts := strings.Split(payload, ":")
-		if len(parts) < 2 {
+		if n < 9 {
 			continue
 		}
 
-		switch parts[0] {
-		case "m":
-			if len(parts) == 3 {
-				dx, err1 := strconv.ParseFloat(parts[1], 64)
-				dy, err2 := strconv.ParseFloat(parts[2], 64)
-				if err1 == nil && err2 == nil {
-					simulator.MoveMouse(dx, dy)
-				}
+		eventType := buf[0]
+
+		xBits := uint32(buf[1])<<24 | uint32(buf[2])<<16 | uint32(buf[3])<<8 | uint32(buf[4])
+		dx := math.Float32frombits(xBits)
+
+		yBits := uint32(buf[5])<<24 | uint32(buf[6])<<16 | uint32(buf[7])<<8 | uint32(buf[8])
+		dy := math.Float32frombits(yBits)
+
+		switch eventType {
+		case 0:
+			simulator.MoveMouse(float64(dx), float64(dy))
+		case 1:
+			dir := "down"
+			if dx > 0 {
+				dir = "up"
 			}
-		case "s":
-			if len(parts) == 2 {
-				dy, err1 := strconv.ParseFloat(parts[1], 64)
-				if err1 == nil {
-					dir := "down"
-					if dy > 0 {
-						dir = "up"
-					}
-					simulator.Scroll(dir)
-				}
-			}
+			simulator.Scroll(dir)
 		}
 	}
 }

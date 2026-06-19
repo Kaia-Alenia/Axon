@@ -18,7 +18,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -37,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.ClipOp
@@ -60,6 +60,10 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+
+private val BlueAccent   = Color(0xFF3B82F6)
+private val VioletAccent = Color(0xFF8B5CF6)
+private val BorderColor  = Color(0xFF334155)
 
 @Composable
 fun QrScannerScreen(
@@ -85,9 +89,6 @@ fun QrScannerScreen(
     LaunchedEffect(key1 = true) {
         if (!hasCamPermission) launcher.launch(Manifest.permission.CAMERA)
     }
-
-    val neonCyan = Color(0xFF00F2FE)
-    val neonPurple = Color(0xFF9D4EDD)
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         if (hasCamPermission) {
@@ -153,7 +154,7 @@ fun QrScannerScreen(
                 }
                 
                 clipPath(boxPath, clipOp = ClipOp.Difference) {
-                    drawPath(overlayPath, Color(0x9905030B))
+                    drawPath(overlayPath, Color(0xAA020617))
                 }
             }
 
@@ -165,21 +166,27 @@ fun QrScannerScreen(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color(0xAA070514))
-                        .border(1.dp, Color(0x3300F2FE), RoundedCornerShape(10.dp))
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color(0xCC0F172A))
+                        .border(1.dp, BorderColor, RoundedCornerShape(14.dp))
                         .clickable { onBack() }
                         .align(Alignment.TopStart),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("←", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Canvas(modifier = Modifier.size(16.dp)) {
+                        val w = size.width
+                        val h = size.height
+                        drawLine(Color.White, start = Offset(w, h / 2), end = Offset(0f, h / 2), strokeWidth = 2.5.dp.toPx())
+                        drawLine(Color.White, start = Offset(w * 0.45f, 0f), end = Offset(0f, h / 2), strokeWidth = 2.5.dp.toPx())
+                        drawLine(Color.White, start = Offset(w * 0.45f, h), end = Offset(0f, h / 2), strokeWidth = 2.5.dp.toPx())
+                    }
                 }
 
                 Box(
                     modifier = Modifier
                         .size(260.dp)
-                        .border(2.dp, neonCyan, RoundedCornerShape(24.dp))
+                        .border(2.5.dp, BlueAccent, RoundedCornerShape(24.dp))
                         .align(Alignment.Center)
                 )
 
@@ -193,8 +200,8 @@ fun QrScannerScreen(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xCC070514))
-                            .border(1.dp, Color(0x339D4EDD), RoundedCornerShape(12.dp))
+                            .background(Color(0xCC0F172A))
+                            .border(1.dp, BorderColor, RoundedCornerShape(12.dp))
                             .padding(horizontal = 20.dp, vertical = 10.dp)
                     ) {
                         Text(

@@ -46,4 +46,21 @@
     <string name="scroll_label">SCROLL</string>
     <string name="left_click">Left Click</string>
     <string name="right_click">Right Click</string>
+    <string name="guide_title">Connection Guide</string>
+    <string name="guide_wifi_title">Wi-Fi Connection</string>
+    <string name="guide_wifi_step">1. Connect both your phone and PC to the same Wi-Fi network.\n2. Launch the Axon server executable on your PC.\n3. Scan the QR code shown in the PC terminal or type the IP manually in the app.</string>
+    <string name="guide_usb_title">USB Connection (ADB)</string>
+    <string name="guide_usb_step">1. Connect your phone to the PC using a USB cable.\n2. Enable \'USB Debugging\' in your phone\'s Developer Options.\n3. Run the Axon server and click \'Connect via USB\' in the app.</string>
+    <string name="guide_bt_title">Bluetooth Connection</string>
+    <string name="guide_bt_step">1. Pair your phone with your PC in the system Bluetooth settings.\n2. Select Bluetooth mode in the app.\n3. Choose your PC from the list of paired devices to connect.</string>
+    <string name="license_title">License &amp; Terms</string>
+    <string name="license_software_title">Software License</string>
+    <string name="license_software_desc">GNU General Public License v3 (GPL v3).</string>
+    <string name="license_assets_title">Assets &amp; Music License</string>
+    <string name="license_assets_desc">Alenia Studios Standard (CC BY 4.0 + Additional Terms).\n- Attribution: Required to Alenia Studios.\n- No Resale: Standalone redistribution or resale is prohibited.\n- No AI: Use for AI training/datasets is prohibited.\n- Commercial Use: Allowed for games, videos, and projects.</string>
+    <string name="license_contact_title">Official Contact</string>
+    <string name="license_contact_desc">contact.aleniastudios@gmail.com</string>
+    <string name="button_guide">Guide</string>
+    <string name="button_license">License</string>
+    <string name="close_action">Close</string>
 </resources>

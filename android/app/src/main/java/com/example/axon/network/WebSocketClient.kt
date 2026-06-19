@@ -83,52 +83,31 @@ class WebSocketClient(private val listener: WebSocketConnectionListener) : Input
     }
 
     override fun sendClick(button: String) {
-        val json = JSONObject()
-        json.put("type", "click")
-        json.put("button", button)
-        send(json.toString())
+        send("{\"type\":\"click\",\"button\":\"$button\"}")
     }
 
     override fun sendMouseDown(button: String) {
-        val json = JSONObject()
-        json.put("type", "mousedown")
-        json.put("button", button)
-        send(json.toString())
+        send("{\"type\":\"mousedown\",\"button\":\"$button\"}")
     }
 
     override fun sendMouseUp(button: String) {
-        val json = JSONObject()
-        json.put("type", "mouseup")
-        json.put("button", button)
-        send(json.toString())
+        send("{\"type\":\"mouseup\",\"button\":\"$button\"}")
     }
 
     override fun sendScroll(dy: Double) {
-        val json = JSONObject()
-        json.put("type", "scroll")
-        json.put("dy", dy)
-        send(json.toString())
+        send("{\"type\":\"scroll\",\"dy\":$dy}")
     }
 
     override fun sendType(text: String) {
-        val json = JSONObject()
-        json.put("type", "type")
-        json.put("text", text)
-        send(json.toString())
+        val escaped = text.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
+        send("{\"type\":\"type\",\"text\":\"$escaped\"}")
     }
 
     override fun sendKey(key: String) {
-        val json = JSONObject()
-        json.put("type", "key")
-        json.put("key", key)
-        send(json.toString())
+        send("{\"type\":\"key\",\"key\":\"$key\"}")
     }
 
     override fun sendKeyCombo(modifier: String, key: String) {
-        val json = JSONObject()
-        json.put("type", "keycombo")
-        json.put("modifier", modifier)
-        json.put("key", key)
-        send(json.toString())
+        send("{\"type\":\"keycombo\",\"modifier\":\"$modifier\",\"key\":\"$key\"}")
     }
 }

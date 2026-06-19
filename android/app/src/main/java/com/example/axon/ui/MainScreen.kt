@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -34,12 +36,13 @@ import androidx.compose.ui.unit.sp
 import com.example.axon.network.InputClient
 import com.example.axon.R
 
-private val MBg      = Color(0xFF0B1120)
-private val MCard    = Color(0xFF111827)
-private val MBlue    = Color(0xFF3B82F6)
-private val MBorder  = Color(0xFF1F2937)
-private val MText    = Color(0xFFF9FAFB)
-private val MTextSec = Color(0xFF6B7280)
+private val BgGradStart  = Color(0xFF0F172A)
+private val BgGradEnd    = Color(0xFF020617)
+private val BlueAccent   = Color(0xFF3B82F6)
+private val VioletAccent = Color(0xFF8B5CF6)
+private val TextPrimary  = Color(0xFFF9FAFB)
+private val TextSecond   = Color(0xFF94A3B8)
+private val BorderColor  = Color(0xFF334155)
 
 enum class ControlMode { Mouse, Keyboard }
 
@@ -50,7 +53,11 @@ fun MainScreen(client: InputClient, onDisconnect: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MBg)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(BgGradStart, BgGradEnd)
+                )
+            )
             .statusBarsPadding()
     ) {
         Box(
@@ -61,7 +68,7 @@ fun MainScreen(client: InputClient, onDisconnect: () -> Unit) {
             AnimatedContent(
                 targetState = mode,
                 transitionSpec = {
-                    fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(160))
+                    fadeIn(animationSpec = tween(220)) togetherWith fadeOut(animationSpec = tween(180))
                 },
                 modifier = Modifier.fillMaxSize(),
                 label = "mode_switch"
@@ -77,14 +84,15 @@ fun MainScreen(client: InputClient, onDisconnect: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 14.dp)
+                .padding(horizontal = 24.dp, vertical = 16.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(MCard),
+                    .height(60.dp)
+                    .clip(RoundedCornerShape(30.dp))
+                    .background(Color.White.copy(alpha = 0.05f))
+                    .border(1.dp, BorderColor, RoundedCornerShape(30.dp)),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 listOf(
@@ -95,17 +103,23 @@ fun MainScreen(client: InputClient, onDisconnect: () -> Unit) {
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .padding(4.dp)
+                            .padding(6.dp)
                             .clip(RoundedCornerShape(24.dp))
-                            .background(if (selected) MBlue else Color.Transparent)
+                            .background(
+                                if (selected) {
+                                    Brush.horizontalGradient(colors = listOf(BlueAccent, VioletAccent))
+                                } else {
+                                    Brush.horizontalGradient(colors = listOf(Color.Transparent, Color.Transparent))
+                                }
+                            )
                             .clickable { mode = m },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = label,
-                            color = if (selected) MText else MTextSec,
+                            color = if (selected) TextPrimary else TextSecond,
                             fontSize = 14.sp,
-                            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                             modifier = Modifier.padding(vertical = 10.dp)
                         )
                     }
