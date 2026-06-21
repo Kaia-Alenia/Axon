@@ -73,6 +73,10 @@ private val TextPrimary  = Color(0xFFF9FAFB)
 private val TextSecond   = Color(0xFF94A3B8)
 private val BorderColor  = Color(0xFF334155)
 
+private val px = floatArrayOf(0.15f, 0.85f, 0.25f, 0.75f, 0.5f, 0.35f, 0.65f, 0.2f, 0.8f, 0.9f)
+private val py = floatArrayOf(0.2f, 0.15f, 0.75f, 0.8f, 0.65f, 0.45f, 0.35f, 0.55f, 0.6f, 0.4f)
+private val pr = floatArrayOf(4f, 6f, 5f, 8f, 5f, 7f, 4f, 6f, 5f, 7f)
+
 @Composable
 fun StartScreen(
     onStart: () -> Unit,
@@ -139,13 +143,11 @@ fun StartScreen(
                 center = Offset(size.width / 2f, size.height * 0.3f)
             )
 
-            val px = floatArrayOf(0.15f, 0.85f, 0.25f, 0.75f, 0.5f, 0.35f, 0.65f, 0.2f, 0.8f, 0.9f)
-            val py = floatArrayOf(0.2f, 0.15f, 0.75f, 0.8f, 0.65f, 0.45f, 0.35f, 0.55f, 0.6f, 0.4f)
-            val pr = floatArrayOf(4f, 6f, 5f, 8f, 5f, 7f, 4f, 6f, 5f, 7f)
+            val twelvePx = 12.dp.toPx()
 
             for (i in px.indices) {
-                val dx = sin(timeValue + i * 1.5f) * 12.dp.toPx()
-                val dy = cos(timeValue + i * 2.0f) * 12.dp.toPx()
+                val dx = sin(timeValue + i * 1.5f) * twelvePx
+                val dy = cos(timeValue + i * 2.0f) * twelvePx
                 val x = size.width * px[i] + dx
                 val y = size.height * py[i] + dy
                 drawCircle(

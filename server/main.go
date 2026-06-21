@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"strconv"
 	"io/fs"
 	"math"
 	"net"
@@ -126,9 +127,6 @@ type ClientMessage struct {
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  4096,
 	WriteBufferSize: 4096,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
 }
 
 func generateToken() string {
@@ -141,52 +139,10 @@ func generateToken() string {
 	return string(b)
 }
 
-func isAddressLocal(remoteAddr string) bool {
-	host, _, err := net.SplitHostPort(remoteAddr)
-	if err != nil {
-		host = remoteAddr
-	}
-	if host == "127.0.0.1" || host == "::1" || host == "localhost" {
-		return true
-	}
-	ip := net.ParseIP(host)
-	if ip != nil {
-		if ip.IsLoopback() || ip.IsUnspecified() || ip.IsLinkLocalUnicast() {
-			return true
-		}
-	}
-	ifaces, err := net.Interfaces()
-	if err != nil {
-		return false
-	}
-	for _, iface := range ifaces {
-		addrs, err := iface.Addrs()
-		if err != nil {
-			continue
-		}
-		for _, addr := range addrs {
-			var ipNet *net.IPNet
-			switch v := addr.(type) {
-			case *net.IPNet:
-				ipNet = v
-			case *net.IPAddr:
-				ipNet = &net.IPNet{IP: v.IP, Mask: net.CIDRMask(len(v.IP)*8, len(v.IP)*8)}
-			}
-			if ipNet != nil && ipNet.IP.Equal(ip) {
-				return true
-			}
-		}
-	}
-	return false
-}
-
 func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	token := r.URL.Query().Get("token")
-	remoteAddrStr := r.RemoteAddr
-	ip, _, _ := net.SplitHostPort(remoteAddrStr)
-	isLocal := isAddressLocal(remoteAddrStr)
 
-	if !isLocal && token != activeToken {
+	if token != activeToken {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
@@ -205,8 +161,8 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		_ = tcpConn.SetWriteBuffer(65536)
 	}
 
-	remoteAddrStr = conn.RemoteAddr().String()
-	ip, _, _ = net.SplitHostPort(remoteAddrStr)
+	remoteAddrStr := conn.RemoteAddr().String()
+	ip, _, _ := net.SplitHostPort(remoteAddrStr)
 
 	activeClientMu.Lock()
 	activeClientIP = ip
@@ -357,18 +313,30 @@ func printQRRainbow(qrStr string) {
 	globalIdx := 0
 	frequency := 1.2
 
+	var sb strings.Builder
+	sb.Grow(len(qrStr) * 19)
+
+	var buf [16]byte
 	for _, line := range lines {
-		var sb strings.Builder
 		for _, ch := range line {
 			phase := float64(globalIdx) / float64(totalRunes+1) * frequency
 			r, g, b := getRGBColor(phase)
-			sb.WriteString(fmt.Sprintf("\033[38;2;%d;%d;%dm%c", r, g, b, ch))
+			
+			sb.WriteString("\033[38;2;")
+			b1 := strconv.AppendInt(buf[:0], int64(r), 10)
+			b1 = append(b1, ';')
+			b1 = strconv.AppendInt(b1, int64(g), 10)
+			b1 = append(b1, ';')
+			b1 = strconv.AppendInt(b1, int64(b), 10)
+			b1 = append(b1, 'm')
+			sb.Write(b1)
+			sb.WriteRune(ch)
+			
 			globalIdx++
 		}
-		sb.WriteString("\033[0m")
-		fmt.Println(sb.String())
-		time.Sleep(18 * time.Millisecond)
+		sb.WriteString("\033[0m\n")
 	}
+	fmt.Print(sb.String())
 }
 
 func startADBKeepalive() {
