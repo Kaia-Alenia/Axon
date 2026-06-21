@@ -51,6 +51,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -183,7 +184,10 @@ fun ConnectScreen(
                         .clip(RoundedCornerShape(14.dp))
                         .background(Color.White.copy(alpha = 0.06f))
                         .border(1.dp, BorderColor, RoundedCornerShape(14.dp))
-                        .clickable { onBack() },
+                        .clickable(
+                            onClickLabel = stringResource(id = R.string.close_action),
+                            role = Role.Button
+                        ) { onBack() },
                     contentAlignment = Alignment.Center
                 ) {
                     Canvas(modifier = Modifier.size(16.dp)) {

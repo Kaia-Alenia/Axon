@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -170,7 +171,10 @@ fun QrScannerScreen(
                         .clip(RoundedCornerShape(14.dp))
                         .background(Color(0xCC0F172A))
                         .border(1.dp, BorderColor, RoundedCornerShape(14.dp))
-                        .clickable { onBack() }
+                        .clickable(
+                            onClickLabel = stringResource(id = R.string.close_action),
+                            role = Role.Button
+                        ) { onBack() }
                         .align(Alignment.TopStart),
                     contentAlignment = Alignment.Center
                 ) {
