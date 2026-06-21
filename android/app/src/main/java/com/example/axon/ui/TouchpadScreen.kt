@@ -90,8 +90,8 @@ fun TouchpadScreen(
         onDispose { udpClient?.close() }
     }
 
-    val accDx = remember { java.util.concurrent.atomic.AtomicLong(java.lang.Double.doubleToRawLongBits(0.0)) }
-    val accDy = remember { java.util.concurrent.atomic.AtomicLong(java.lang.Double.doubleToRawLongBits(0.0)) }
+    val accDx = remember { java.util.concurrent.atomic.AtomicLong(0L) }
+    val accDy = remember { java.util.concurrent.atomic.AtomicLong(0L) }
     val lastSendTime = remember { java.util.concurrent.atomic.AtomicLong(0L) }
     val throttleMs = if (isLocalConnection) 12L else 16L
     val lastScrollTime = remember { java.util.concurrent.atomic.AtomicLong(0L) }
@@ -113,8 +113,8 @@ fun TouchpadScreen(
 
     LaunchedEffect(dragChannel) {
         for (signal in dragChannel) {
-            val dx = java.lang.Double.longBitsToDouble(accDx.getAndSet(java.lang.Double.doubleToRawLongBits(0.0)))
-            val dy = java.lang.Double.longBitsToDouble(accDy.getAndSet(java.lang.Double.doubleToRawLongBits(0.0)))
+            val dx = java.lang.Double.longBitsToDouble(accDx.getAndSet(0L))
+            val dy = java.lang.Double.longBitsToDouble(accDy.getAndSet(0L))
             if (dx != 0.0 || dy != 0.0) {
                 sendMove(dx, dy)
             }
@@ -196,8 +196,8 @@ fun TouchpadScreen(
                             awaitEachGesture {
                                 val down = awaitFirstDown(requireUnconsumed = false)
                                 touchPos = down.position
-                                accDx.set(java.lang.Double.doubleToRawLongBits(0.0))
-                                accDy.set(java.lang.Double.doubleToRawLongBits(0.0))
+                                accDx.set(0L)
+                                accDy.set(0L)
                                 var dragPointerId = down.id
                                 val startTime = System.currentTimeMillis()
                                 var isDrag = false
@@ -207,8 +207,8 @@ fun TouchpadScreen(
                                     val anyPressed = event.changes.any { it.pressed }
                                     if (!anyPressed) {
                                         touchPos = null
-                                        val dx = java.lang.Double.longBitsToDouble(accDx.getAndSet(java.lang.Double.doubleToRawLongBits(0.0)))
-                                        val dy = java.lang.Double.longBitsToDouble(accDy.getAndSet(java.lang.Double.doubleToRawLongBits(0.0)))
+                                        val dx = java.lang.Double.longBitsToDouble(accDx.getAndSet(0L))
+                                        val dy = java.lang.Double.longBitsToDouble(accDy.getAndSet(0L))
                                         if (dx != 0.0 || dy != 0.0) sendMove(dx, dy)
                                         val duration = System.currentTimeMillis() - startTime
                                         if (!isDrag && duration < 200 && totalDist < 15f) {
