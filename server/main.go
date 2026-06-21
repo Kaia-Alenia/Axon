@@ -15,6 +15,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gorilla/websocket"
 	"github.com/skip2/go-qrcode"
@@ -351,17 +352,14 @@ func startUDPServer() {
 
 func printQRRainbow(qrStr string) {
 	lines := strings.Split(qrStr, "\n")
-	totalRunes := 0
-	for _, line := range lines {
-		totalRunes += len([]rune(line))
-	}
+	totalRunes := utf8.RuneCountInString(qrStr) - len(lines) + 1
 
 	globalIdx := 0
 	frequency := 1.2
 
 	for _, line := range lines {
 		var sb strings.Builder
-		for _, ch := range []rune(line) {
+		for _, ch := range line {
 			phase := float64(globalIdx) / float64(totalRunes+1) * frequency
 			r, g, b := getRGBColor(phase)
 			sb.WriteString(fmt.Sprintf("\033[38;2;%d;%d;%dm%c", r, g, b, ch))
