@@ -109,19 +109,16 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
                 } else ""
                 if (added.isNotEmpty()) {
                     client.sendType(added)
-                    history.add(added)
                 }
                 client.sendKey("Return")
-                history.add("[Return]")
+                history.add(textState + added)
                 textState = ""
             } else if (newText.length > textState.length) {
                 val addedText = newText.substring(textState.length)
                 client.sendType(addedText)
-                history.add(addedText)
                 textState = newText
             } else if (newText.length < textState.length) {
                 client.sendKey("BackSpace")
-                history.add("[BackSpace]")
                 textState = newText
             }
         },
@@ -130,7 +127,8 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
             .focusRequester(focusRequester),
         keyboardOptions = KeyboardOptions(
             imeAction = ImeAction.Default,
-            keyboardType = KeyboardType.Text
+            autoCorrectEnabled = false,
+            keyboardType = KeyboardType.Password
         )
     )
 
@@ -145,7 +143,7 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
         val logKey = when (key) {
             "__mod_ctrl" -> if (!ctrlActive) "[CTRL ON]" else "[CTRL OFF]"
             "__mod_alt"  -> if (!altActive)  "[ALT ON]"  else "[ALT OFF]"
-            else -> "key: $key"
+            else -> "[$key]"
         }
         if (key != "__mod_ctrl" && key != "__mod_alt") history.add(logKey)
 
@@ -234,6 +232,7 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
                 item {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("axon:~$ ", color = BlueAccent, fontSize = 12.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                        Text(textState, color = GreenAccent, fontSize = 12.sp, fontFamily = FontFamily.Monospace)
                         Text("█", color = BlueAccent.copy(alpha = 0.7f), fontSize = 12.sp, fontFamily = FontFamily.Monospace)
                     }
                 }

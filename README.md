@@ -96,6 +96,13 @@ cd android
 
 The APK will be at `android/app/build/outputs/apk/debug/`.
 
+If your conect via adb use
+
+```bash
+cd android
+./gradlew installdebug
+```
+
 ## Connection Recommendations
 
 To get the best experience and minimize latency, the following guidelines are suggested:

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"strconv"
 	"io/fs"
 	"math"
 	"net"
@@ -16,10 +15,8 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"unicode/utf8"
 
 	"github.com/gorilla/websocket"
-	"github.com/skip2/go-qrcode"
 )
 
 //go:embed web/*
@@ -139,11 +136,18 @@ func generateToken() string {
 	return string(b)
 }
 
-func handleWebSocket(w http.ResponseWriter, r *http.Request) {
+func handleAuthentication(w http.ResponseWriter, r *http.Request) bool {
 	token := r.URL.Query().Get("token")
 
 	if token != activeToken {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return false
+	}
+	return true
+}
+
+func handleWebSocket(w http.ResponseWriter, r *http.Request) {
+	if !handleAuthentication(w, r) {
 		return
 	}
 
@@ -183,32 +187,37 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("[DISCONNECTION] Client disconnected")
 	}()
 
-	go func() {
-		ticker := time.NewTicker(500 * time.Millisecond)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-ticker.C:
-				pingMsg := map[string]interface{}{
-					"type":      "ping",
-					"timestamp": time.Now().UnixMilli(),
-				}
-				data, err := json.Marshal(pingMsg)
-				if err != nil {
-					continue
-				}
-				_ = conn.SetWriteDeadline(time.Now().Add(1 * time.Second))
-				err = conn.WriteMessage(websocket.TextMessage, data)
-				if err != nil {
-					_ = conn.Close()
-					return
-				}
-			case <-done:
+	go startPingLoop(conn, done)
+	handleMessages(conn)
+}
+
+func startPingLoop(conn *websocket.Conn, done chan bool) {
+	ticker := time.NewTicker(500 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			pingMsg := map[string]interface{}{
+				"type":      "ping",
+				"timestamp": time.Now().UnixMilli(),
+			}
+			data, err := json.Marshal(pingMsg)
+			if err != nil {
+				continue
+			}
+			_ = conn.SetWriteDeadline(time.Now().Add(1 * time.Second))
+			err = conn.WriteMessage(websocket.TextMessage, data)
+			if err != nil {
+				_ = conn.Close()
 				return
 			}
+		case <-done:
+			return
 		}
-	}()
+	}
+}
 
+func handleMessages(conn *websocket.Conn) {
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
@@ -306,39 +315,6 @@ func startUDPServer() {
 	}
 }
 
-func printQRRainbow(qrStr string) {
-	lines := strings.Split(qrStr, "\n")
-	totalRunes := utf8.RuneCountInString(qrStr) - len(lines) + 1
-
-	globalIdx := 0
-	frequency := 1.2
-
-	var sb strings.Builder
-	sb.Grow(len(qrStr) * 19)
-
-	var buf [16]byte
-	for _, line := range lines {
-		for _, ch := range line {
-			phase := float64(globalIdx) / float64(totalRunes+1) * frequency
-			r, g, b := getRGBColor(phase)
-			
-			sb.WriteString("\033[38;2;")
-			b1 := strconv.AppendInt(buf[:0], int64(r), 10)
-			b1 = append(b1, ';')
-			b1 = strconv.AppendInt(b1, int64(g), 10)
-			b1 = append(b1, ';')
-			b1 = strconv.AppendInt(b1, int64(b), 10)
-			b1 = append(b1, 'm')
-			sb.Write(b1)
-			sb.WriteRune(ch)
-			
-			globalIdx++
-		}
-		sb.WriteString("\033[0m\n")
-	}
-	fmt.Print(sb.String())
-}
-
 func startADBKeepalive() {
 	portStr := fmt.Sprintf("tcp:%d", port)
 	for {
@@ -413,12 +389,7 @@ func main() {
 	fmt.Println(colorizeRainbow("    Scan the QR with the AXON app:", 0.5))
 	printLine("", 0)
 
-	qrCode, err := qrcode.New(url, qrcode.Medium)
-	if err == nil {
-		printQRRainbow(qrCode.ToSmallString(false))
-	} else {
-		fmt.Println("Error generating QR code in console:", err)
-	}
+	printTerminalQRCode(url)
 
 	fmt.Printf("\n")
 	fmt.Println(colorizeRainbow(fmt.Sprintf("    Or enter: %s", url), 0.5))

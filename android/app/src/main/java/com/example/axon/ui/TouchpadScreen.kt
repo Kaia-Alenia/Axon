@@ -402,21 +402,16 @@ fun TouchpadScreen(
             onValueChange = { newValue ->
                 val newText = newValue.text
                 val oldText = textState.text
-                textState = TextFieldValue("  ", TextRange(2))
+                textState = TextFieldValue(" ", TextRange(1))
                 when {
                     newText.length < oldText.length -> client.sendKey("BackSpace")
                     newText.length > oldText.length -> {
-                        val added = newText.removePrefix(oldText)
-                        when {
-                            added == "\n" -> client.sendKey("Return")
-                            added == " "  -> client.sendKey("space")
-                            added.length == 1 -> client.sendType(added)
-                            else -> added.forEach { ch ->
-                                when {
-                                    ch == '\n' -> client.sendKey("Return")
-                                    ch == ' '  -> client.sendKey("space")
-                                    else       -> client.sendType(ch.toString())
-                                }
+                        val added = if (newText.startsWith(oldText)) newText.substring(oldText.length) else newText
+                        added.forEach { ch ->
+                            when {
+                                ch == '\n' -> client.sendKey("Return")
+                                ch == ' '  -> client.sendKey("space")
+                                else       -> client.sendType(ch.toString())
                             }
                         }
                     }
@@ -427,10 +422,14 @@ fun TouchpadScreen(
                 .height(1.dp)
                 .alpha(0f)
                 .focusRequester(focusRequester),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Default),
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Default,
+                autoCorrectEnabled = false,
+                keyboardType = androidx.compose.ui.text.input.KeyboardType.Password
+            ),
             keyboardActions = KeyboardActions(onAny = {
                 client.sendKey("Return")
-                textState = TextFieldValue("  ", TextRange(2))
+                textState = TextFieldValue(" ", TextRange(1))
             })
         )
     }

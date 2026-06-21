@@ -35,21 +35,7 @@ class UdpClient(
     }
 
     fun sendMove(dx: Double, dy: Double) {
-        val bytes = ByteArray(9)
-        bytes[0] = 0.toByte()
-        
-        val xBits = java.lang.Float.floatToIntBits(dx.toFloat())
-        bytes[1] = (xBits shr 24).toByte()
-        bytes[2] = (xBits shr 16).toByte()
-        bytes[3] = (xBits shr 8).toByte()
-        bytes[4] = xBits.toByte()
-
-        val yBits = java.lang.Float.floatToIntBits(dy.toFloat())
-        bytes[5] = (yBits shr 24).toByte()
-        bytes[6] = (yBits shr 16).toByte()
-        bytes[7] = (yBits shr 8).toByte()
-        bytes[8] = yBits.toByte()
-
+        val bytes = createMovePacket(dx, dy)
         channel.trySend(bytes)
     }
 
@@ -77,6 +63,27 @@ class UdpClient(
             channel.close()
             scope.cancel()
         } catch (e: Exception) {
+        }
+    }
+
+    companion object {
+        fun createMovePacket(dx: Double, dy: Double): ByteArray {
+            val bytes = ByteArray(9)
+            bytes[0] = 0.toByte()
+            
+            val xBits = java.lang.Float.floatToIntBits(dx.toFloat())
+            bytes[1] = (xBits shr 24).toByte()
+            bytes[2] = (xBits shr 16).toByte()
+            bytes[3] = (xBits shr 8).toByte()
+            bytes[4] = xBits.toByte()
+
+            val yBits = java.lang.Float.floatToIntBits(dy.toFloat())
+            bytes[5] = (yBits shr 24).toByte()
+            bytes[6] = (yBits shr 16).toByte()
+            bytes[7] = (yBits shr 8).toByte()
+            bytes[8] = yBits.toByte()
+
+            return bytes
         }
     }
 }
