@@ -193,8 +193,12 @@ fun TouchpadScreen(
                         .background(Color.White.copy(alpha = 0.04f))
                         .border(1.dp, BorderColor, RoundedCornerShape(24.dp))
                         .pointerInput(isLocalConnection) {
+                            var lastTapTime = 0L
                             awaitEachGesture {
                                 val down = awaitFirstDown(requireUnconsumed = false)
+                                val downTime = System.currentTimeMillis()
+                                val isDoubleTap = (downTime - lastTapTime) < 300
+                                var isDraggingClick = false
                                 touchPos = down.position
                                 accDx.set(0L)
                                 accDy.set(0L)
@@ -202,6 +206,7 @@ fun TouchpadScreen(
                                 val startTime = System.currentTimeMillis()
                                 var isDrag = false
                                 var totalDist = 0f
+                                var lastZoomDist: Float? = null
                                 while (true) {
                                     val event = awaitPointerEvent()
                                     val anyPressed = event.changes.any { it.pressed }
@@ -210,21 +215,53 @@ fun TouchpadScreen(
                                         val dx = java.lang.Double.longBitsToDouble(accDx.getAndSet(0L))
                                         val dy = java.lang.Double.longBitsToDouble(accDy.getAndSet(0L))
                                         if (dx != 0.0 || dy != 0.0) sendMove(dx, dy)
-                                        val duration = System.currentTimeMillis() - startTime
-                                        if (!isDrag && duration < 200 && totalDist < 15f) {
-                                            client.sendClick("left")
-                                            tapPos = down.position
-                                            coroutineScope.launch {
-                                                tapScale.snapTo(0f)
-                                                tapScale.animateTo(
-                                                    1f,
-                                                    tween(280, easing = FastOutSlowInEasing)
-                                                )
-                                                tapPos = null
+                                        
+                                        if (isDraggingClick) {
+                                            client.sendMouseUp("left")
+                                        } else {
+                                            val duration = System.currentTimeMillis() - startTime
+                                            if (!isDrag && duration < 200 && totalDist < 15f) {
+                                                client.sendClick("left")
+                                                lastTapTime = System.currentTimeMillis()
+                                                
+                                                tapPos = down.position
+                                                coroutineScope.launch {
+                                                    tapScale.snapTo(0f)
+                                                    tapScale.animateTo(
+                                                        1f,
+                                                        tween(280, easing = FastOutSlowInEasing)
+                                                    )
+                                                    tapPos = null
+                                                }
                                             }
                                         }
                                         break
                                     }
+                                    val pressedChanges = event.changes.filter { it.pressed }
+                                    if (pressedChanges.size == 2) {
+                                        val p1 = pressedChanges[0].position
+                                        val p2 = pressedChanges[1].position
+                                        val dist = kotlin.math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))
+                                        
+                                        if (lastZoomDist != null) {
+                                            val delta = dist - lastZoomDist!!
+                                            if (abs(delta) > 15f) { // threshold for zoom
+                                                if (delta > 0) {
+                                                    client.sendKeyCombo("ctrl", "+")
+                                                } else {
+                                                    client.sendKeyCombo("ctrl", "-")
+                                                }
+                                                lastZoomDist = dist
+                                            }
+                                        } else {
+                                            lastZoomDist = dist
+                                        }
+                                        // consume changes to prevent them from causing jumps
+                                        event.changes.forEach { it.consume() }
+                                    } else {
+                                        lastZoomDist = null
+                                    }
+                                    
                                     val change = event.changes.firstOrNull { it.id == dragPointerId && it.pressed }
                                         ?: event.changes.firstOrNull { it.pressed }
                                     if (change != null) {
@@ -232,19 +269,26 @@ fun TouchpadScreen(
                                         touchPos = change.position
                                         val dragAmount = change.position - change.previousPosition
                                         change.consume()
-                                        val dist = kotlin.math.sqrt(dragAmount.x * dragAmount.x + dragAmount.y * dragAmount.y)
-                                        totalDist += dist
-                                        if (totalDist > 8f) {
-                                            isDrag = true
+                                        
+                                        if (pressedChanges.size == 1) {
+                                            val dist = kotlin.math.sqrt(dragAmount.x * dragAmount.x + dragAmount.y * dragAmount.y)
+                                            totalDist += dist
+                                            if (totalDist > 8f) {
+                                                isDrag = true
+                                                if (isDoubleTap && !isDraggingClick) {
+                                                    isDraggingClick = true
+                                                    client.sendMouseDown("left")
+                                                }
+                                            }
+                                            val sensitivity = 2.2
+                                            val prevDx = java.lang.Double.longBitsToDouble(accDx.get())
+                                            val prevDy = java.lang.Double.longBitsToDouble(accDy.get())
+                                            val newDx = prevDx + dragAmount.x.toDouble() * sensitivity
+                                            val newDy = prevDy + dragAmount.y.toDouble() * sensitivity
+                                            accDx.set(java.lang.Double.doubleToRawLongBits(newDx))
+                                            accDy.set(java.lang.Double.doubleToRawLongBits(newDy))
+                                            dragChannel.trySend(Unit)
                                         }
-                                        val sensitivity = 2.2
-                                        val prevDx = java.lang.Double.longBitsToDouble(accDx.get())
-                                        val prevDy = java.lang.Double.longBitsToDouble(accDy.get())
-                                        val newDx = prevDx + dragAmount.x.toDouble() * sensitivity
-                                        val newDy = prevDy + dragAmount.y.toDouble() * sensitivity
-                                        accDx.set(java.lang.Double.doubleToRawLongBits(newDx))
-                                        accDy.set(java.lang.Double.doubleToRawLongBits(newDy))
-                                        dragChannel.trySend(Unit)
                                     }
                                 }
                             }
@@ -363,7 +407,15 @@ fun TouchpadScreen(
                         .clip(RoundedCornerShape(16.dp))
                         .background(Color.White.copy(alpha = 0.05f))
                         .border(1.dp, BorderColor, RoundedCornerShape(16.dp))
-                        .clickable { client.sendClick("left") },
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onPress = {
+                                    client.sendMouseDown("left")
+                                    tryAwaitRelease()
+                                    client.sendMouseUp("left")
+                                }
+                            )
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -383,7 +435,15 @@ fun TouchpadScreen(
                         .clip(RoundedCornerShape(16.dp))
                         .background(Color.White.copy(alpha = 0.05f))
                         .border(1.dp, BorderColor, RoundedCornerShape(16.dp))
-                        .clickable { client.sendClick("right") },
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onPress = {
+                                    client.sendMouseDown("right")
+                                    tryAwaitRelease()
+                                    client.sendMouseUp("right")
+                                }
+                            )
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(

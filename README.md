@@ -28,8 +28,10 @@ An open-source remote input tool by **AXON**. Run the server on your PC, connect
 ## Features
 
 - Touchpad - Smooth cursor movement with multi-touch support
-- Keyboard - Full keyboard input forwarding
+- Keyboard - Full keyboard input forwarding with functional Ctrl/Alt combinations
 - Scroll Wheel - Dedicated scroll zone
+- Advanced Gestures - Pinch-to-zoom and Double-tap-and-hold to drag for text selection/window movement
+- Hardware Integration - Volume control using native Android volume buttons
 - QR Connect - Scan and connect instantly
 - Wi-Fi & Bluetooth - Dual connectivity
 - Cross-Platform Server - Linux, Windows & macOS

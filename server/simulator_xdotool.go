@@ -27,6 +27,8 @@ var keyMap = map[string]int{
 	"Next":      uinput.KeyPagedown,
 	"Delete":    uinput.KeyDelete,
 	"F5":        uinput.KeyF5,
+	"volumeup":   uinput.KeyVolumeup,
+	"volumedown": uinput.KeyVolumedown,
 }
 
 type LinuxSimulator struct {
@@ -181,6 +183,10 @@ func (s *LinuxSimulator) executeCmd(cmdStr string) {
 					xKey = "Page_Up"
 				case "Next":
 					xKey = "Page_Down"
+				case "volumeup":
+					xKey = "XF86AudioRaiseVolume"
+				case "volumedown":
+					xKey = "XF86AudioLowerVolume"
 				}
 				_ = exec.Command("xdotool", "key", xKey).Run()
 			}

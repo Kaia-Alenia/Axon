@@ -57,10 +57,6 @@ private val specialKeyRow = listOf(
     SpecialKey("TAB", "Tab"),
     SpecialKey("CTRL", "__mod_ctrl"),
     SpecialKey("ALT", "__mod_alt"),
-    SpecialKey("↑", "Up"),
-    SpecialKey("↓", "Down"),
-    SpecialKey("←", "Left"),
-    SpecialKey("→", "Right"),
     SpecialKey("HOME", "Home"),
     SpecialKey("END", "End"),
     SpecialKey("PgUp", "Prior"),
@@ -68,14 +64,10 @@ private val specialKeyRow = listOf(
 )
 
 private val quickActions = listOf(
-    SpecialKey("Ctrl+C", "__combo_ctrl_c"),
-    SpecialKey("Ctrl+V", "__combo_ctrl_v"),
-    SpecialKey("Ctrl+Z", "__combo_ctrl_z"),
-    SpecialKey("Ctrl+X", "__combo_ctrl_x"),
-    SpecialKey("Ctrl+A", "__combo_ctrl_a"),
-    SpecialKey("Enter", "Return"),
-    SpecialKey("Del", "Delete"),
-    SpecialKey("F5", "F5"),
+    SpecialKey("↑", "Up"),
+    SpecialKey("↓", "Down"),
+    SpecialKey("←", "Left"),
+    SpecialKey("→", "Right"),
 )
 
 private val BgGradStart  = Color(0xFF0F172A)
@@ -100,45 +92,6 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
     val historyListState = rememberLazyListState()
     var textState by remember { mutableStateOf("") }
 
-    BasicTextField(
-        value = textState,
-        onValueChange = { newText ->
-            if (newText.endsWith("\n")) {
-                val added = if (newText.length > textState.length + 1) {
-                    newText.substring(textState.length, newText.length - 1)
-                } else ""
-                if (added.isNotEmpty()) {
-                    client.sendType(added)
-                }
-                client.sendKey("Return")
-                history.add(textState + added)
-                textState = ""
-            } else if (newText.length > textState.length) {
-                val addedText = newText.substring(textState.length)
-                client.sendType(addedText)
-                textState = newText
-            } else if (newText.length < textState.length) {
-                client.sendKey("BackSpace")
-                textState = newText
-            }
-        },
-        modifier = Modifier
-            .size(0.dp)
-            .focusRequester(focusRequester),
-        keyboardOptions = KeyboardOptions(
-            imeAction = ImeAction.Default,
-            autoCorrectEnabled = false,
-            keyboardType = KeyboardType.Password
-        )
-    )
-
-    LaunchedEffect(Unit) {
-        try { focusRequester.requestFocus(); keyboardController?.show() } catch (_: Exception) {}
-    }
-    LaunchedEffect(history.size) {
-        if (history.isNotEmpty()) historyListState.animateScrollToItem(history.size - 1)
-    }
-
     fun sendKey(key: String) {
         val logKey = when (key) {
             "__mod_ctrl" -> if (!ctrlActive) "[CTRL ON]" else "[CTRL OFF]"
@@ -158,6 +111,55 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
             altActive  -> { client.sendKeyCombo("alt", key.lowercase()); altActive = false }
             else -> client.sendKey(key)
         }
+    }
+
+    BasicTextField(
+        value = textState,
+        onValueChange = { newText ->
+            if (newText.endsWith("\n")) {
+                val added = if (newText.length > textState.length + 1) {
+                    newText.substring(textState.length, newText.length - 1)
+                } else ""
+                if (added.isNotEmpty()) {
+                    if (added.length == 1 && (ctrlActive || altActive)) {
+                        sendKey(added)
+                    } else {
+                        client.sendType(added)
+                        history.add(textState + added)
+                    }
+                } else if (textState.isNotEmpty()) {
+                    history.add(textState)
+                }
+                sendKey("Return")
+                textState = ""
+            } else if (newText.length > textState.length) {
+                val addedText = newText.substring(textState.length)
+                if (addedText.length == 1 && (ctrlActive || altActive)) {
+                    sendKey(addedText)
+                } else {
+                    client.sendType(addedText)
+                    textState = newText
+                }
+            } else if (newText.length < textState.length) {
+                sendKey("BackSpace")
+                textState = newText
+            }
+        },
+        modifier = Modifier
+            .size(0.dp)
+            .focusRequester(focusRequester),
+        keyboardOptions = KeyboardOptions(
+            imeAction = ImeAction.Default,
+            autoCorrectEnabled = false,
+            keyboardType = KeyboardType.Password
+        )
+    )
+
+    LaunchedEffect(Unit) {
+        try { focusRequester.requestFocus(); keyboardController?.show() } catch (_: Exception) {}
+    }
+    LaunchedEffect(history.size) {
+        if (history.isNotEmpty()) historyListState.animateScrollToItem(history.size - 1)
     }
 
     Column(

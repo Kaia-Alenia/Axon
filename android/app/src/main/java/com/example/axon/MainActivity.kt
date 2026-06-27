@@ -164,4 +164,26 @@ class MainActivity : ComponentActivity(), WebSocketClient.WebSocketConnectionLis
         webSocketClient?.disconnect()
         bluetoothClient?.disconnect()
     }
+
+    override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        if (currentScreen == AppScreen.Control) {
+            when (event.keyCode) {
+                android.view.KeyEvent.KEYCODE_VOLUME_UP -> {
+                    if (event.action == android.view.KeyEvent.ACTION_DOWN) {
+                        android.util.Log.d("AxonKeys", "Volume UP pressed! Sending volumeup to activeClient")
+                        activeClient?.sendKey("volumeup")
+                    }
+                    return true
+                }
+                android.view.KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                    if (event.action == android.view.KeyEvent.ACTION_DOWN) {
+                        android.util.Log.d("AxonKeys", "Volume DOWN pressed! Sending volumedown to activeClient")
+                        activeClient?.sendKey("volumedown")
+                    }
+                    return true
+                }
+            }
+        }
+        return super.dispatchKeyEvent(event)
+    }
 }

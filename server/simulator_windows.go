@@ -167,6 +167,10 @@ func (s *WindowsSimulator) Key(key string) {
 		vk = 0x7A
 	case "F12":
 		vk = 0x7B
+	case "volumeup":
+		vk = 0xAF
+	case "volumedown":
+		vk = 0xAE
 	default:
 		return
 	}
