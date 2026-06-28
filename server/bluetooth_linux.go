@@ -59,44 +59,47 @@ func handleBluetoothConnection(fd int) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		text := scanner.Text()
-		
-		var msg ClientMessage
-		err := json.Unmarshal([]byte(text), &msg)
-		if err != nil {
-			// Handle plain strings if needed, or ignore
-			continue
-		}
-
-		switch msg.Type {
-		case "move":
-			simulator.MoveMouse(msg.Dx, msg.Dy)
-		case "click":
-			simulator.Click(msg.Button)
-		case "mousedown":
-			simulator.MouseDown(msg.Button)
-		case "mouseup":
-			simulator.MouseUp(msg.Button)
-		case "scroll":
-			dir := "down"
-			if msg.Dy > 0 {
-				dir = "up"
-			}
-			simulator.Scroll(dir)
-		case "type":
-			fmt.Printf("[BT KEYBOARD] Typing text: %q\n", msg.Text)
-			simulator.Type(msg.Text)
-		case "key":
-			fmt.Printf("[BT KEYBOARD] Pressing special key: %q\n", msg.Key)
-			simulator.Key(msg.Key)
-		case "keycombo":
-			fmt.Printf("[BT KEYBOARD] Pressing combo: %s+%s\n", msg.Modifier, msg.Key)
-			simulator.KeyCombo(msg.Modifier, msg.Key)
-		}
+		processBluetoothData([]byte(text))
 	}
 	
 	if err := scanner.Err(); err != nil {
 		fmt.Println("[DISCONNECTION] Bluetooth client error:", err)
 	} else {
 		fmt.Println("[DISCONNECTION] Bluetooth client disconnected")
+	}
+}
+
+func processBluetoothData(data []byte) {
+	text := string(data)
+	var msg ClientMessage
+	err := json.Unmarshal([]byte(text), &msg)
+	if err != nil {
+		return
+	}
+
+	switch msg.Type {
+	case "move":
+		simulator.MoveMouse(msg.Dx, msg.Dy)
+	case "click":
+		simulator.Click(msg.Button)
+	case "mousedown":
+		simulator.MouseDown(msg.Button)
+	case "mouseup":
+		simulator.MouseUp(msg.Button)
+	case "scroll":
+		dir := "down"
+		if msg.Dy > 0 {
+			dir = "up"
+		}
+		simulator.Scroll(dir)
+	case "type":
+		fmt.Printf("[BT KEYBOARD] Typing text: %q\n", msg.Text)
+		simulator.Type(msg.Text)
+	case "key":
+		fmt.Printf("[BT KEYBOARD] Pressing special key: %q\n", msg.Key)
+		simulator.Key(msg.Key)
+	case "keycombo":
+		fmt.Printf("[BT KEYBOARD] Pressing combo: %s+%s\n", msg.Modifier, msg.Key)
+		simulator.KeyCombo(msg.Modifier, msg.Key)
 	}
 }
