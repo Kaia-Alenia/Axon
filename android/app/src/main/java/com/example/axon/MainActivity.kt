@@ -1,5 +1,4 @@
 package com.example.axon
-
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -23,21 +22,18 @@ import com.example.axon.ui.ConnectScreen
 import com.example.axon.ui.MainScreen
 import com.example.axon.ui.QrScannerScreen
 import com.example.axon.ui.StartScreen
-
 enum class AppScreen {
     Start,
     Connect,
     Scan,
     Control
 }
-
 class MainActivity : ComponentActivity(), WebSocketClient.WebSocketConnectionListener, BluetoothClient.ConnectionListener {
     private var webSocketClient: WebSocketClient? = null
     private var bluetoothClient: BluetoothClient? = null
     private var activeClient: InputClient? = null
     private var currentScreen by mutableStateOf(AppScreen.Start)
     private var connectionError by mutableStateOf("")
-
     override fun attachBaseContext(newBase: Context) {
         val prefs = newBase.getSharedPreferences("axon_prefs", MODE_PRIVATE)
         val lang = prefs.getString("language", Locale.getDefault().language) ?: "es"
@@ -48,18 +44,14 @@ class MainActivity : ComponentActivity(), WebSocketClient.WebSocketConnectionLis
         val context = newBase.createConfigurationContext(config)
         super.attachBaseContext(context)
     }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
         webSocketClient = WebSocketClient(this)
         bluetoothClient = BluetoothClient(this)
-        
         enableEdgeToEdge()
         setContent {
             val prefs = remember { getSharedPreferences("axon_prefs", MODE_PRIVATE) }
             val currentLanguage = remember { prefs.getString("language", Locale.getDefault().language) ?: "es" }
-
             AxonTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -138,33 +130,28 @@ class MainActivity : ComponentActivity(), WebSocketClient.WebSocketConnectionLis
             }
         }
     }
-
     override fun onConnected() {
         runOnUiThread {
             currentScreen = AppScreen.Control
             connectionError = ""
         }
     }
-
     override fun onDisconnected() {
         runOnUiThread {
             currentScreen = AppScreen.Connect
         }
     }
-
     override fun onError(message: String) {
         runOnUiThread {
             currentScreen = AppScreen.Connect
             connectionError = message
         }
     }
-
     override fun onDestroy() {
         super.onDestroy()
         webSocketClient?.disconnect()
         bluetoothClient?.disconnect()
     }
-
     override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
         if (currentScreen == AppScreen.Control) {
             when (event.keyCode) {

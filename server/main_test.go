@@ -1,11 +1,9 @@
 package main
-
 import (
 	"strings"
 	"testing"
 	"unicode/utf8"
 )
-
 func TestGetRGBColor(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -22,7 +20,6 @@ func TestGetRGBColor(t *testing.T) {
 		{name: "Phase 0.75", phase: 0.75, expectedR: 0, expectedG: 190, expectedB: 190},
 		{name: "Phase 1.0", phase: 1.0, expectedR: 126, expectedG: 236, expectedB: 17},
 	}
-
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			r, g, b := getRGBColor(tc.phase)
@@ -32,9 +29,7 @@ func TestGetRGBColor(t *testing.T) {
 		})
 	}
 }
-
 var testQRStr = strings.Repeat("█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄\n", 100)
-
 func BenchmarkPrintQRRainbow_OriginalRunesCount(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		lines := strings.Split(testQRStr, "\n")
@@ -45,7 +40,6 @@ func BenchmarkPrintQRRainbow_OriginalRunesCount(b *testing.B) {
 		_ = totalRunes
 	}
 }
-
 func BenchmarkPrintQRRainbow_OptimizedRunesCount(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		lines := strings.Split(testQRStr, "\n")
@@ -53,7 +47,6 @@ func BenchmarkPrintQRRainbow_OptimizedRunesCount(b *testing.B) {
 		_ = totalRunes
 	}
 }
-
 func BenchmarkPrintQRRainbow_OriginalPrintLoop(b *testing.B) {
 	lines := strings.Split(testQRStr, "\n")
 	for i := 0; i < b.N; i++ {
@@ -65,7 +58,6 @@ func BenchmarkPrintQRRainbow_OriginalPrintLoop(b *testing.B) {
 		}
 	}
 }
-
 func BenchmarkPrintQRRainbow_OptimizedPrintLoop(b *testing.B) {
 	lines := strings.Split(testQRStr, "\n")
 	for i := 0; i < b.N; i++ {
@@ -77,7 +69,6 @@ func BenchmarkPrintQRRainbow_OptimizedPrintLoop(b *testing.B) {
 		}
 	}
 }
-
 func TestColorizeRainbow(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -106,7 +97,6 @@ func TestColorizeRainbow(t *testing.T) {
 			text:      "a",
 			frequency: 0.0,
 			wantFunc: func(got string) bool {
-				// We expect specific RGB for phase=0
 				return strings.HasPrefix(got, "\033[38;2;") && strings.HasSuffix(got, "ma\033[0m")
 			},
 		},
@@ -137,7 +127,6 @@ func TestColorizeRainbow(t *testing.T) {
 			},
 		},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := colorizeRainbow(tt.text, tt.frequency)

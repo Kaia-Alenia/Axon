@@ -1,5 +1,4 @@
 package com.example.axon.ui
-
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
@@ -58,18 +57,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.example.axon.R
-
 private const val PREFS_NAME = "axon_prefs"
 private const val KEY_LAST_IP = "last_ip"
 private const val KEY_LAST_TOKEN = "last_token"
-
 private fun saveCredentials(context: Context, ip: String, token: String) {
     context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
         .putString(KEY_LAST_IP, ip)
         .putString(KEY_LAST_TOKEN, token)
         .apply()
 }
-
 private fun loadCredentials(context: Context): Pair<String, String> {
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     return Pair(
@@ -77,11 +73,9 @@ private fun loadCredentials(context: Context): Pair<String, String> {
         prefs.getString(KEY_LAST_TOKEN, "") ?: ""
     )
 }
-
 enum class ConnectionMode {
     WiFi, USB, Bluetooth
 }
-
 private val BgGradStart  = Color(0xFF0F172A)
 private val BgGradEnd    = Color(0xFF020617)
 private val AccentGlow   = Color(0xFF1E3A8A)
@@ -94,7 +88,6 @@ private val CardInner    = Color(0xFF1E293B)
 private val BorderColor  = Color(0xFF334155)
 private val ErrorColor   = Color(0xFFEF4444)
 private val SuccessColor = Color(0xFF10B981)
-
 @Composable
 fun ConnectScreen(
     onConnect: (String) -> Unit,
@@ -105,14 +98,11 @@ fun ConnectScreen(
 ) {
     val context = LocalContext.current
     val (savedIp, savedToken) = remember { loadCredentials(context) }
-
     var mode by remember { mutableStateOf(ConnectionMode.WiFi) }
     var ipInput by remember { mutableStateOf(savedIp) }
     var tokenInput by remember { mutableStateOf(savedToken) }
     var btMac by remember { mutableStateOf("") }
-
     val bluetoothAdapter = remember { BluetoothAdapter.getDefaultAdapter() }
-
     var bluetoothPermissionGranted by remember {
         mutableStateOf(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -122,13 +112,11 @@ fun ConnectScreen(
             }
         )
     }
-
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         bluetoothPermissionGranted = isGranted
     }
-
     val pairedDevices by remember(bluetoothPermissionGranted) {
         mutableStateOf(
             try {
@@ -142,7 +130,6 @@ fun ConnectScreen(
             }
         )
     }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -162,7 +149,6 @@ fun ConnectScreen(
                 center = Offset(size.width / 2f, size.height * 0.2f)
             )
         }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -170,7 +156,6 @@ fun ConnectScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(24.dp))
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -207,7 +192,6 @@ fun ConnectScreen(
                 )
                 Spacer(modifier = Modifier.width(44.dp))
             }
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -249,7 +233,6 @@ fun ConnectScreen(
                     }
                 }
             }
-
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -385,7 +368,6 @@ fun ConnectScreen(
                                 Text(stringResource(id = R.string.scan_qr), fontSize = 15.sp, fontWeight = FontWeight.Bold)
                             }
                         }
-
                         ConnectionMode.USB -> {
                             Text(
                                 text = stringResource(id = R.string.usb_min_latency),
@@ -443,7 +425,6 @@ fun ConnectScreen(
                                 }
                             }
                         }
-
                         ConnectionMode.Bluetooth -> {
                             Text(
                                 text = stringResource(id = R.string.bt_no_wifi),
@@ -468,7 +449,6 @@ fun ConnectScreen(
                                 )
                             }
                             Spacer(modifier = Modifier.height(16.dp))
-
                             if (bluetoothAdapter == null) {
                                 Text(
                                     text = stringResource(id = R.string.bt_not_available),
@@ -551,7 +531,6 @@ fun ConnectScreen(
                                         }
                                     }
                                 }
-
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
                                     text = stringResource(id = R.string.or_enter_mac),
@@ -607,7 +586,6 @@ fun ConnectScreen(
                             }
                         }
                     }
-
                     AnimatedVisibility(
                         visible = errorMessage.isNotEmpty(),
                         enter = fadeIn(),
@@ -631,7 +609,6 @@ fun ConnectScreen(
                     }
                 }
             }
-
             Spacer(modifier = Modifier.height(40.dp))
         }
     }

@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# AXON Build Script - Multiplataforma
-# Compila RFCOMM Bluetooth para Linux, macOS (amd64/arm64) y Windows
-
 set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -12,14 +9,12 @@ VERSION="1.0.0"
 BUILD_DIR="./build"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
-# Colores
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Funciones
 print_header() {
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${BLUE}$1${NC}"
@@ -38,18 +33,15 @@ print_info() {
     echo -e "${YELLOW}ℹ${NC} $1"
 }
 
-# Limpieza
 cleanup() {
     rm -rf "$BUILD_DIR"
 }
 
-# Crear directorio de build
 init_build() {
     mkdir -p "$BUILD_DIR"
     print_success "Build directory ready: $BUILD_DIR"
 }
 
-# Test en Linux
 test_linux() {
     print_header "TESTING (Linux)"
     
@@ -66,7 +58,6 @@ test_linux() {
     fi
 }
 
-# Compilar para Linux
 build_linux() {
     print_header "COMPILING FOR LINUX"
     
@@ -81,7 +72,6 @@ build_linux() {
         print_success "Linux arm64 compiled" || print_error "Linux arm64 failed"
 }
 
-# Compilar para macOS
 build_macos() {
     print_header "COMPILING FOR MACOS"
     
@@ -101,7 +91,6 @@ build_macos() {
     fi
 }
 
-# Compilar para Windows
 build_windows() {
     print_header "COMPILING FOR WINDOWS"
     
@@ -116,7 +105,6 @@ build_windows() {
     fi
 }
 
-# Verificar compilación sin compilar realmente
 check_syntax() {
     print_header "CHECKING SYNTAX"
     
@@ -124,7 +112,6 @@ check_syntax() {
         print_success "Syntax check passed" || print_error "Syntax check failed"
 }
 
-# Listar binarios compilados
 list_builds() {
     print_header "COMPILED BINARIES"
     
@@ -141,44 +128,42 @@ list_builds() {
     fi
 }
 
-# Mostrar ayuda
 show_help() {
     cat << EOF
-${BLUE}AXON Build System - Multiplataforma${NC}
+${BLUE}AXON Build System - Cross-Platform${NC}
 
-Uso: $0 [comando]
+Usage: $0 [command]
 
-Comandos:
-    test              Ejecutar tests en Linux
-    build             Compilar para todas las plataformas
-    build-linux       Compilar solo para Linux
-    build-macos       Compilar solo para macOS
-    build-windows     Compilar solo para Windows
-    check             Verificar sintaxis (sin compilar)
-    clean             Limpiar directorio de build
-    help              Mostrar esta ayuda
+Commands:
+    test              Run tests on Linux
+    build             Compile for all platforms
+    build-linux       Compile only for Linux
+    build-macos       Compile only for macOS
+    build-windows     Compile only for Windows
+    check             Check syntax (without compiling)
+    clean             Clean build directory
+    help              Show this help message
 
-Ejemplos:
-    $0 test               # Ejecutar pruebas
-    $0 build              # Compilar todo
-    $0 build-linux        # Solo Linux
-    $0 clean              # Limpiar
+Examples:
+    $0 test
+    $0 build
+    $0 build-linux
+    $0 clean
 
-Variables de entorno:
-    GOOS              Especificar SO (linux, darwin, windows)
-    GOARCH            Especificar arquitectura (amd64, arm64)
-    CGO_ENABLED       Habilitar CGo (1/0)
-    CC                Especificar compilador C
+Environment variables:
+    GOOS              Specify OS (linux, darwin, windows)
+    GOARCH            Specify architecture (amd64, arm64)
+    CGO_ENABLED       Enable CGo (1/0)
+    CC                Specify C compiler
     
-Plataformas soportadas:
+Supported platforms:
     ✓ Linux (amd64, arm64)
-    ✓ macOS (amd64, arm64) - Requiere Clang/Xcode
-    ✓ Windows (amd64) - Requiere MinGW o MSVC
+    ✓ macOS (amd64, arm64) - Requires Clang/Xcode
+    ✓ Windows (amd64) - Requires MinGW or MSVC
     
 EOF
 }
 
-# Main
 main() {
     local cmd="${1:-help}"
     
@@ -234,5 +219,4 @@ main() {
     esac
 }
 
-# Ejecutar main
 main "$@"

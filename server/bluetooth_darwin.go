@@ -1,47 +1,6 @@
 //go:build darwin
-
 package main
-
-/*
-#cgo CFLAGS: -x objective-c
-#cgo LDFLAGS: -framework IOBluetooth -framework Foundation
-
-#import <IOBluetooth/IOBluetooth.h>
-#import <Foundation/Foundation.h>
-
-typedef int (*rfcomm_callback_t)(int channel, const uint8_t* data, int len);
-
-static rfcomm_callback_t g_callback = NULL;
-static IOBluetoothRFCOMMChannel* g_rfcomm_channel = NULL;
-
-void set_rfcomm_callback(rfcomm_callback_t callback) {
-    g_callback = callback;
-}
-
-int start_rfcomm_server() {
-    // Create an RFCOMM service on a dynamic channel
-    IOBluetoothSDPServiceRecord* serviceRecord;
-    NSError* error = nil;
-    
-    NSMutableDictionary* attributes = [NSMutableDictionary dictionary];
-    [attributes setObject:@"Axon RFCOMM Server" forKey:@"ServiceName"];
-    [attributes setObject:@"Axon High-Speed Input" forKey:@"ServiceDescription"];
-    
-    // Publish service on dynamic RFCOMM channel
-    IOReturn ret = IOBluetoothAddServiceDict(
-        (CFDictionaryRef)attributes,
-        &serviceRecord
-    );
-    
-    if (ret != kIOReturnSuccess) {
-        return -1;
-    }
-    
-    return 1;
-}
-*/
 import "C"
-
 import (
 	"bufio"
 	"encoding/json"
@@ -51,18 +10,15 @@ import (
 	"sync"
 	"time"
 )
-
 var (
 	bluetoothListenerDarwin net.Listener
 	bluetoothConnMutex      sync.Mutex
 	bluetoothConnections    = make(map[net.Conn]bool)
 )
-
 func startBluetoothServer() {
 	fmt.Println("[BT] Starting native RFCOMM server on macOS")
 	go startNativeRFCOMMServer()
 }
-
 func startNativeRFCOMMServer() {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -70,36 +26,29 @@ func startNativeRFCOMMServer() {
 		return
 	}
 	defer listener.Close()
-
 	bluetoothListenerDarwin = listener
 	fmt.Printf("[BT] RFCOMM server listening on %s (macOS native)\n", listener.Addr().String())
-
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
 			fmt.Printf("[BT] Error accepting connection: %v\n", err)
 			continue
 		}
-
 		if tcpConn, ok := conn.(*net.TCPConn); ok {
 			remoteAddr := tcpConn.RemoteAddr().String()
 			fmt.Printf("[CONNECTION] Bluetooth client connected from: %s\n", remoteAddr)
-
 			tcpConn.SetNoDelay(true)
 			tcpConn.SetKeepAlive(true)
 			tcpConn.SetKeepAlivePeriod(1 * time.Second)
 			tcpConn.SetReadBuffer(65536)
 			tcpConn.SetWriteBuffer(65536)
 		}
-
 		bluetoothConnMutex.Lock()
 		bluetoothConnections[conn] = true
 		bluetoothConnMutex.Unlock()
-
 		go handleBluetoothConnection(conn)
 	}
 }
-
 func handleBluetoothConnection(conn net.Conn) {
 	defer func() {
 		conn.Close()
@@ -109,33 +58,26 @@ func handleBluetoothConnection(conn net.Conn) {
 		fmt.Println("[DISCONNECTION] Bluetooth client disconnected")
 	}()
 
-	reader := bufio.NewReader(conn)
-	buf := make([]byte, 16384)
+	scanner := bufio.NewScanner(conn)
+	// Increase scanner buffer size in case of large messages
+	buf := make([]byte, 0, 64*1024)
+	scanner.Buffer(buf, 1024*1024)
 
-	for {
-		n, err := reader.Read(buf)
-		if err != nil {
-			if err != io.EOF {
-				fmt.Printf("[BT] Read error: %v\n", err)
-			}
-			break
-		}
+	for scanner.Scan() {
+		processBluetoothData(scanner.Bytes())
+	}
 
-		processBluetoothData(buf[:n])
+	if err := scanner.Err(); err != nil {
+		fmt.Printf("[BT] Read error: %v\n", err)
 	}
 }
-
 func processBluetoothData(data []byte) {
-	lines := bufio.NewScanner(bufio.NewReader(nil))
-	lines.Buffer(data, len(data))
-
 	text := string(data)
 	var msg ClientMessage
 	err := json.Unmarshal([]byte(text), &msg)
 	if err != nil {
 		return
 	}
-
 	switch msg.Type {
 	case "move":
 		simulator.MoveMouse(msg.Dx, msg.Dy)

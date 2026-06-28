@@ -1,5 +1,4 @@
 package com.example.axon.ui
-
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -61,7 +60,6 @@ import kotlin.math.abs
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-
 private val BgGradStart  = Color(0xFF0F172A)
 private val BgGradEnd    = Color(0xFF020617)
 private val BlueAccent   = Color(0xFF3B82F6)
@@ -70,7 +68,6 @@ private val TextPrimary  = Color(0xFFF9FAFB)
 private val TextSecond   = Color(0xFF94A3B8)
 private val BorderColor  = Color(0xFF334155)
 private val RedAccent    = Color(0xFFEF4444)
-
 @Composable
 fun TouchpadScreen(
     client: InputClient,
@@ -81,36 +78,30 @@ fun TouchpadScreen(
     val isLocalConnection = serverIp == "127.0.0.1" || serverIp == "localhost"
     val isBluetooth = client is com.example.axon.network.BluetoothClient
     val useUdp = !isLocalConnection && !isBluetooth && serverIp.isNotEmpty()
-
     val udpClient = remember(serverIp, useUdp) {
         if (useUdp) UdpClient(serverIp) else null
     }
-
     DisposableEffect(udpClient) {
         onDispose { udpClient?.close() }
     }
-
     val accDx = remember { java.util.concurrent.atomic.AtomicLong(0L) }
     val accDy = remember { java.util.concurrent.atomic.AtomicLong(0L) }
     val lastSendTime = remember { java.util.concurrent.atomic.AtomicLong(0L) }
     val throttleMs = if (isLocalConnection) 12L else 16L
     val lastScrollTime = remember { java.util.concurrent.atomic.AtomicLong(0L) }
     val scrollThrottleMs = 20L
-
     val sendMove = { dx: Double, dy: Double ->
         if (!useUdp || udpClient == null) client.sendMove(dx, dy) else udpClient.sendMove(dx, dy)
     }
     val sendScroll = { dy: Double ->
         if (!useUdp || udpClient == null) client.sendScroll(dy) else udpClient.sendScroll(dy)
     }
-
     val dragChannel = remember {
         Channel<Unit>(
             capacity = 1,
             onBufferOverflow = BufferOverflow.DROP_OLDEST
         )
     }
-
     LaunchedEffect(dragChannel) {
         for (signal in dragChannel) {
             val dx = java.lang.Double.longBitsToDouble(accDx.getAndSet(0L))
@@ -121,16 +112,13 @@ fun TouchpadScreen(
             kotlinx.coroutines.delay(16)
         }
     }
-
     val focusRequester = remember { FocusRequester() }
     var textState by remember { mutableStateOf(TextFieldValue("  ", TextRange(2))) }
     val coroutineScope = rememberCoroutineScope()
-
     var touchPos by remember { mutableStateOf<Offset?>(null) }
     val tapScale = remember { Animatable(0f) }
     var tapPos by remember { mutableStateOf<Offset?>(null) }
     var scrollOffset by remember { mutableStateOf(0f) }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -142,7 +130,6 @@ fun TouchpadScreen(
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -164,7 +151,6 @@ fun TouchpadScreen(
                         fontWeight = FontWeight.Medium
                     )
                 }
-
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
@@ -182,9 +168,7 @@ fun TouchpadScreen(
                     )
                 }
             }
-
             Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
-
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -215,7 +199,6 @@ fun TouchpadScreen(
                                         val dx = java.lang.Double.longBitsToDouble(accDx.getAndSet(0L))
                                         val dy = java.lang.Double.longBitsToDouble(accDy.getAndSet(0L))
                                         if (dx != 0.0 || dy != 0.0) sendMove(dx, dy)
-                                        
                                         if (isDraggingClick) {
                                             client.sendMouseUp("left")
                                         } else {
@@ -223,7 +206,6 @@ fun TouchpadScreen(
                                             if (!isDrag && duration < 200 && totalDist < 15f) {
                                                 client.sendClick("left")
                                                 lastTapTime = System.currentTimeMillis()
-                                                
                                                 tapPos = down.position
                                                 coroutineScope.launch {
                                                     tapScale.snapTo(0f)
@@ -242,10 +224,9 @@ fun TouchpadScreen(
                                         val p1 = pressedChanges[0].position
                                         val p2 = pressedChanges[1].position
                                         val dist = kotlin.math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))
-                                        
                                         if (lastZoomDist != null) {
                                             val delta = dist - lastZoomDist!!
-                                            if (abs(delta) > 15f) { // threshold for zoom
+                                            if (abs(delta) > 15f) { 
                                                 if (delta > 0) {
                                                     client.sendKeyCombo("ctrl", "+")
                                                 } else {
@@ -256,12 +237,10 @@ fun TouchpadScreen(
                                         } else {
                                             lastZoomDist = dist
                                         }
-                                        // consume changes to prevent them from causing jumps
                                         event.changes.forEach { it.consume() }
                                     } else {
                                         lastZoomDist = null
                                     }
-                                    
                                     val change = event.changes.firstOrNull { it.id == dragPointerId && it.pressed }
                                         ?: event.changes.firstOrNull { it.pressed }
                                     if (change != null) {
@@ -269,7 +248,6 @@ fun TouchpadScreen(
                                         touchPos = change.position
                                         val dragAmount = change.position - change.previousPosition
                                         change.consume()
-                                        
                                         if (pressedChanges.size == 1) {
                                             val dist = kotlin.math.sqrt(dragAmount.x * dragAmount.x + dragAmount.y * dragAmount.y)
                                             totalDist += dist
@@ -317,7 +295,6 @@ fun TouchpadScreen(
                             )
                         }
                     }
-
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "⬡",
@@ -326,11 +303,8 @@ fun TouchpadScreen(
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.width(12.dp))
-
                 val scrollAcc = remember { java.util.concurrent.atomic.AtomicReference(0f) }
-
                 Box(
                     modifier = Modifier
                         .width(62.dp)
@@ -396,9 +370,7 @@ fun TouchpadScreen(
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(12.dp))
-
             Row(modifier = Modifier.fillMaxWidth().height(72.dp)) {
                 Box(
                     modifier = Modifier
@@ -425,9 +397,7 @@ fun TouchpadScreen(
                         fontWeight = FontWeight.Bold
                     )
                 }
-
                 Spacer(modifier = Modifier.width(12.dp))
-
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -454,9 +424,7 @@ fun TouchpadScreen(
                     )
                 }
             }
-
         }
-
         TextField(
             value = textState,
             onValueChange = { newValue ->

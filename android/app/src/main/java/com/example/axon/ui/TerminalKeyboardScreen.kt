@@ -1,5 +1,4 @@
 package com.example.axon.ui
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -49,9 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.axon.network.InputClient
 import com.example.axon.R
-
 private data class SpecialKey(val label: String, val key: String)
-
 private val specialKeyRow = listOf(
     SpecialKey("ESC", "Escape"),
     SpecialKey("TAB", "Tab"),
@@ -62,14 +59,12 @@ private val specialKeyRow = listOf(
     SpecialKey("PgUp", "Prior"),
     SpecialKey("PgDn", "Next"),
 )
-
 private val quickActions = listOf(
     SpecialKey("↑", "Up"),
     SpecialKey("↓", "Down"),
     SpecialKey("←", "Left"),
     SpecialKey("→", "Right"),
 )
-
 private val BgGradStart  = Color(0xFF0F172A)
 private val BgGradEnd    = Color(0xFF020617)
 private val BlueAccent   = Color(0xFF3B82F6)
@@ -79,19 +74,16 @@ private val TextSecond   = Color(0xFF94A3B8)
 private val BorderColor  = Color(0xFF334155)
 private val GreenAccent  = Color(0xFF10B981)
 private val RedAccent    = Color(0xFFEF4444)
-
 @Composable
 fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-
     val history = remember { mutableStateListOf<String>() }
     var ctrlActive by remember { mutableStateOf(false) }
     var altActive by remember { mutableStateOf(false) }
     val historyListState = rememberLazyListState()
     var textState by remember { mutableStateOf("") }
-
     fun sendKey(key: String) {
         val logKey = when (key) {
             "__mod_ctrl" -> if (!ctrlActive) "[CTRL ON]" else "[CTRL OFF]"
@@ -99,7 +91,6 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
             else -> "[$key]"
         }
         if (key != "__mod_ctrl" && key != "__mod_alt") history.add(logKey)
-
         when {
             key.startsWith("__combo_") -> {
                 val parts = key.removePrefix("__combo_").split("_")
@@ -112,7 +103,6 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
             else -> client.sendKey(key)
         }
     }
-
     BasicTextField(
         value = textState,
         onValueChange = { newText ->
@@ -154,14 +144,12 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
             keyboardType = KeyboardType.Password
         )
     )
-
     LaunchedEffect(Unit) {
         try { focusRequester.requestFocus(); keyboardController?.show() } catch (_: Exception) {}
     }
     LaunchedEffect(history.size) {
         if (history.isNotEmpty()) historyListState.animateScrollToItem(history.size - 1)
     }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -184,7 +172,6 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
                 letterSpacing = (-0.3).sp,
                 modifier = Modifier.weight(1f)
             )
-
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(10.dp))
@@ -197,7 +184,6 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
                 Text(stringResource(id = R.string.exit_action), color = RedAccent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
         }
-
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -240,9 +226,7 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
                 }
             }
         }
-
         Spacer(modifier = Modifier.height(10.dp))
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -276,9 +260,7 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
                 }
             }
         }
-
         Spacer(modifier = Modifier.height(6.dp))
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -305,9 +287,7 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
                 }
             }
         }
-
         Spacer(modifier = Modifier.height(10.dp))
-
         Box(
             modifier = Modifier
                 .fillMaxWidth()

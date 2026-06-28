@@ -1,5 +1,4 @@
 package com.example.axon.ui
-
 import android.Manifest
 import android.content.pm.PackageManager
 import android.util.Size
@@ -61,11 +60,9 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
-
 private val BlueAccent   = Color(0xFF3B82F6)
 private val VioletAccent = Color(0xFF8B5CF6)
 private val BorderColor  = Color(0xFF334155)
-
 @Composable
 fun QrScannerScreen(
     onQrDetected: (String) -> Unit,
@@ -78,7 +75,6 @@ fun QrScannerScreen(
             ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
         )
     }
-
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { granted ->
@@ -86,16 +82,13 @@ fun QrScannerScreen(
             if (!granted) onBack()
         }
     )
-
     LaunchedEffect(key1 = true) {
         if (!hasCamPermission) launcher.launch(Manifest.permission.CAMERA)
     }
-
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         if (hasCamPermission) {
             val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
             val detected = remember { AtomicBoolean(false) }
-
             AndroidView(
                 factory = { ctx ->
                     val previewView = PreviewView(ctx)
@@ -105,15 +98,12 @@ fun QrScannerScreen(
                             .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
                             .build()
                     )
-
                     val preview = Preview.Builder().build()
                     preview.setSurfaceProvider(previewView.surfaceProvider)
-
                     val analysis = ImageAnalysis.Builder()
                         .setTargetResolution(Size(1280, 720))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build()
-
                     analysis.setAnalyzer(executor) { imageProxy ->
                         if (detected.get()) {
                             imageProxy.close()
@@ -125,7 +115,6 @@ fun QrScannerScreen(
                             }
                         }
                     }
-
                     try {
                         val cameraProvider = cameraProviderFuture.get()
                         cameraProvider.unbindAll()
@@ -133,32 +122,26 @@ fun QrScannerScreen(
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
-
                     previewView
                 },
                 modifier = Modifier.fillMaxSize()
             )
-
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val overlayPath = Path().apply {
                     addRect(Rect(0f, 0f, size.width, size.height))
                 }
-                
                 val boxSize = 250.dp.toPx()
                 val left = (size.width - boxSize) / 2
                 val top = (size.height - boxSize) / 2
                 val right = left + boxSize
                 val bottom = top + boxSize
-                
                 val boxPath = Path().apply {
                     addRoundRect(RoundRect(left, top, right, bottom, CornerRadius(20.dp.toPx(), 20.dp.toPx())))
                 }
-                
                 clipPath(boxPath, clipOp = ClipOp.Difference) {
                     drawPath(overlayPath, Color(0xAA020617))
                 }
             }
-
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -186,14 +169,12 @@ fun QrScannerScreen(
                         drawLine(Color.White, start = Offset(w * 0.45f, h), end = Offset(0f, h / 2), strokeWidth = 2.5.dp.toPx())
                     }
                 }
-
                 Box(
                     modifier = Modifier
                         .size(260.dp)
                         .border(2.5.dp, BlueAccent, RoundedCornerShape(24.dp))
                         .align(Alignment.Center)
                 )
-
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -233,7 +214,6 @@ fun QrScannerScreen(
         }
     }
 }
-
 @androidx.annotation.OptIn(androidx.camera.core.ExperimentalGetImage::class)
 private fun processImageProxy(
     imageProxy: ImageProxy,

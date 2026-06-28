@@ -1,16 +1,12 @@
 //go:build linux || darwin
-
 package main
-
 import (
 	"fmt"
 	"os/exec"
 	"strings"
 	"sync"
-
 	"github.com/bendahl/uinput"
 )
-
 var keyMap = map[string]int{
 	"Return":    uinput.KeyEnter,
 	"BackSpace": uinput.KeyBackspace,
@@ -30,7 +26,6 @@ var keyMap = map[string]int{
 	"volumeup":   uinput.KeyVolumeup,
 	"volumedown": uinput.KeyVolumedown,
 }
-
 type LinuxSimulator struct {
 	mu       sync.Mutex
 	mouse    uinput.Mouse
@@ -38,7 +33,6 @@ type LinuxSimulator struct {
 	ch       chan string
 	closed   bool
 }
-
 func initSimulator() InputSimulator {
 	s := &LinuxSimulator{
 		ch: make(chan string, 200),
@@ -60,7 +54,6 @@ func initSimulator() InputSimulator {
 	go s.loop()
 	return s
 }
-
 func (s *LinuxSimulator) Send(cmdStr string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -72,7 +65,6 @@ func (s *LinuxSimulator) Send(cmdStr string) {
 	default:
 	}
 }
-
 func (s *LinuxSimulator) executeCmd(cmdStr string) {
 	if strings.HasPrefix(cmdStr, "mousemove_relative") {
 		var dx, dy float64
@@ -193,7 +185,6 @@ func (s *LinuxSimulator) executeCmd(cmdStr string) {
 		}
 	}
 }
-
 var runeToKey = map[rune]int{
 	'a': uinput.KeyA, 'b': uinput.KeyB, 'c': uinput.KeyC, 'd': uinput.KeyD,
 	'e': uinput.KeyE, 'f': uinput.KeyF, 'g': uinput.KeyG, 'h': uinput.KeyH,
@@ -215,7 +206,6 @@ var runeToKey = map[rune]int{
 	'}': uinput.KeyBackslash,
 	'<': 86,
 }
-
 var shiftRuneMap = map[rune]rune{
 	'!': '1', '"': '2', '#': '3', '$': '4', '%': '5',
 	'&': '6', '/': '7', '(': '8', ')': '9', '=': '0',
@@ -230,7 +220,6 @@ var shiftRuneMap = map[rune]rune{
 	';': ',',
 	':': '.',
 }
-
 func (s *LinuxSimulator) typeChar(char rune) {
 	if s.keyboard == nil {
 		return
@@ -288,7 +277,6 @@ func (s *LinuxSimulator) typeChar(char rune) {
 		}
 	}
 }
-
 func (s *LinuxSimulator) loop() {
 	for cmdStr := range s.ch {
 		if strings.HasPrefix(cmdStr, "mousemove_relative") {
@@ -362,11 +350,9 @@ func (s *LinuxSimulator) loop() {
 		}
 	}
 }
-
 func (s *LinuxSimulator) MoveMouse(dx, dy float64) {
 	s.Send(fmt.Sprintf("mousemove_relative -- %f %f", dx, dy))
 }
-
 func (s *LinuxSimulator) Click(button string) {
 	btn := "1"
 	if button == "right" {
@@ -376,7 +362,6 @@ func (s *LinuxSimulator) Click(button string) {
 	}
 	s.Send(fmt.Sprintf("click %s", btn))
 }
-
 func (s *LinuxSimulator) MouseDown(button string) {
 	btn := "1"
 	if button == "right" {
@@ -384,7 +369,6 @@ func (s *LinuxSimulator) MouseDown(button string) {
 	}
 	s.Send(fmt.Sprintf("mousedown %s", btn))
 }
-
 func (s *LinuxSimulator) MouseUp(button string) {
 	btn := "1"
 	if button == "right" {
@@ -392,7 +376,6 @@ func (s *LinuxSimulator) MouseUp(button string) {
 	}
 	s.Send(fmt.Sprintf("mouseup %s", btn))
 }
-
 func (s *LinuxSimulator) Scroll(direction string) {
 	if direction == "up" {
 		s.Send("click 4")
@@ -400,15 +383,12 @@ func (s *LinuxSimulator) Scroll(direction string) {
 		s.Send("click 5")
 	}
 }
-
 func (s *LinuxSimulator) Type(text string) {
 	s.Send(fmt.Sprintf("type -- %s", text))
 }
-
 func (s *LinuxSimulator) Key(key string) {
 	s.Send(fmt.Sprintf("key %s", key))
 }
-
 func (s *LinuxSimulator) KeyCombo(modifier, key string) {
 	if s.keyboard != nil {
 		modCode := 0
@@ -448,7 +428,6 @@ func (s *LinuxSimulator) KeyCombo(modifier, key string) {
 		_ = exec.Command("xdotool", "key", combo).Run()
 	}
 }
-
 func (s *LinuxSimulator) Close() {
 	s.mu.Lock()
 	if s.closed {

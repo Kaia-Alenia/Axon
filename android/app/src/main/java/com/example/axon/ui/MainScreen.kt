@@ -1,5 +1,4 @@
 package com.example.axon.ui
-
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -35,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.axon.network.InputClient
 import com.example.axon.R
-
 private val BgGradStart  = Color(0xFF0F172A)
 private val BgGradEnd    = Color(0xFF020617)
 private val BlueAccent   = Color(0xFF3B82F6)
@@ -43,13 +41,10 @@ private val VioletAccent = Color(0xFF8B5CF6)
 private val TextPrimary  = Color(0xFFF9FAFB)
 private val TextSecond   = Color(0xFF94A3B8)
 private val BorderColor  = Color(0xFF334155)
-
 enum class ControlMode { Mouse, Keyboard }
-
 @Composable
 fun MainScreen(client: InputClient, onDisconnect: () -> Unit) {
     var mode by remember { mutableStateOf(ControlMode.Mouse) }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -79,7 +74,6 @@ fun MainScreen(client: InputClient, onDisconnect: () -> Unit) {
                 }
             }
         }
-
         Box(
             modifier = Modifier
                 .fillMaxWidth()

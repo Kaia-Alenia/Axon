@@ -25,6 +25,8 @@ jobs:
           mkdir -p build/
           cd server
           GOOS=linux GOARCH=amd64 go build -v -ldflags="-s -w" -o ../build/axon-linux-amd64 .
+          GOOS=linux GOARCH=arm64 go build -v -ldflags="-s -w" -o ../build/axon-linux-arm64 .
+          GOOS=linux GOARCH=arm go build -v -ldflags="-s -w" -o ../build/axon-linux-arm .
           GOOS=windows GOARCH=amd64 go build -v -ldflags="-s -w" -o ../build/axon-windows-amd64.exe .
           GOOS=darwin GOARCH=amd64 go build -v -ldflags="-s -w" -o ../build/axon-darwin-amd64 .
           GOOS=darwin GOARCH=arm64 go build -v -ldflags="-s -w" -o ../build/axon-darwin-arm64 .
@@ -92,6 +94,8 @@ jobs:
         with:
           files: |
             release-assets/axon-linux-amd64
+            release-assets/axon-linux-arm64
+            release-assets/axon-linux-arm
             release-assets/axon-windows-amd64.exe
             release-assets/axon-darwin-amd64
             release-assets/axon-darwin-arm64

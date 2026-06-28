@@ -4,7 +4,7 @@
 
 # Axon
 
-**Turn any device into a wireless touchpad, keyboard & scroll wheel for your PC.**
+**Turn any device into a high-performance wireless touchpad, keyboard, and scroll wheel for your PC.**
 
 [![Build](https://github.com/Kaia-Alenia/Axon/actions/workflows/build.yml/badge.svg)](https://github.com/Kaia-Alenia/Axon/actions/workflows/build.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
@@ -19,139 +19,148 @@
 
 <br/>
 
-An open-source remote input tool by **AXON**. Run the server on your PC, connect from your phone's browser or the native Android app — instant wireless control.
+An open-source, ultra-low-latency remote input tool by **AXON**. Run the server on your computer, connect from your phone's native Android app or browser, and experience seamless, native-feeling control.
 
 </div>
 
 ---
 
-## Features
+## Overview and Key Features
 
-- Touchpad - Smooth cursor movement with multi-touch support
-- Keyboard - Full keyboard input forwarding with functional Ctrl/Alt combinations
-- Scroll Wheel - Dedicated scroll zone
-- Advanced Gestures - Pinch-to-zoom and Double-tap-and-hold to drag for text selection/window movement
-- Hardware Integration - Volume control using native Android volume buttons
-- QR Connect - Scan and connect instantly
-- Wi-Fi & Bluetooth - Dual connectivity
-- Cross-Platform Server - Linux, Windows & macOS
-- Web Client - No app install needed, works from any browser
-- Native Android App - Jetpack Compose client
+Axon is engineered from the ground up to provide a flawless, lag-free peripheral experience. Unlike conventional remote-control apps, Axon uses optimized networking protocols (UDP and low-level RFCOMM Bluetooth) to achieve unprecedented performance.
 
-## Project Structure
+- **Ultra-Low Latency (1ms - 3ms):** Thanks to our optimized Bluetooth and USB/ADB implementations, input delay is practically non-existent. It feels exactly like using a high-end native hardware mouse.
+- **Dynamic Port Allocation:** Robust server architecture automatically manages port conflicts. If standard ports are in use, it seamlessly falls back to dynamic allocation without crashing.
+- **Advanced Gestures:** Pinch-to-zoom, multi-touch scrolling, and double-tap-and-hold to drag (perfect for text selection or dragging windows).
+- **Hardware Integration:** Utilize native physical volume buttons on your Android device to control system volume.
+- **Cross-Platform Compatibility:** Runs flawlessly on Linux, Windows, and macOS with native input simulation.
+- **Zero-Setup Pairing:** Scan the QR code presented in your terminal and connect instantly.
+- **Triple Connectivity Options:** Wi-Fi, Bluetooth, and USB/ADB modes to suit any networking environment.
 
-```
-Axon/
-├── server/          # Go server (Linux / Windows / macOS)
-│   ├── main.go      # Entry point & WebSocket handler
-│   ├── simulator*.go # Platform-specific input simulation
-│   ├── bluetooth*.go # Platform-specific Bluetooth
-│   └── web/         # Embedded web client (HTML/CSS/JS)
-├── android/         # Native Android client (Kotlin)
-│   └── app/         # Jetpack Compose application
-├── .github/
-│   ├── workflows/   # CI build pipelines
-│   └── FUNDING.yml  # Sponsorship config
-├── LICENSE          # GNU GPL v3
-├── CONTRIBUTING.md  # How to contribute
-├── CODE_OF_CONDUCT.md
-├── SECURITY.md      # Vulnerability reporting
-├── CHANGELOG.md     # Version history
-└── README.md
-```
 ## Downloads & Installation
 
-To use Axon, you need to download two files: the app for your phone and the server for your computer.
+To use Axon, you need to set up the Client (on your phone) and the Server (on your computer).
 
 ### 1. Android App (Client)
-Download the following file and install it on your mobile device:
-* [axon-android-debug.apk](https://github.com/kaia-alenia/axon/releases/latest/download/axon-android-debug.apk)
+
+1. Download the latest APK from the releases page: [axon-android-debug.apk](https://github.com/kaia-alenia/axon/releases/latest/download/axon-android-debug.apk)
+2. Transfer the file to your Android device (if downloaded on a computer).
+3. Open the file on your device. You may need to grant your file manager permission to "Install from Unknown Sources".
+4. Follow the on-screen prompts to complete the installation.
 
 ### 2. Server (Computer)
-Download the correct file for your computer's operating system to receive connections:
-* **Windows:** [axon-windows-amd64.exe](https://github.com/kaia-alenia/axon/releases/latest/download/axon-windows-amd64.exe)
-* **Linux:** [axon-linux-amd64](https://github.com/kaia-alenia/axon/releases/latest/download/axon-linux-amd64)
-* **macOS (Intel):** [axon-darwin-amd64](https://github.com/kaia-alenia/axon/releases/latest/download/axon-darwin-amd64)
-* **macOS (Apple Silicon):** [axon-darwin-arm64](https://github.com/kaia-alenia/axon/releases/latest/download/axon-darwin-arm64)
 
-> **Note for Linux and macOS users:** After downloading the server file, remember to grant it execution permissions from the terminal before launching it:
-> `chmod +x filename`
+We provide three distinct methods to install the Axon server, catering to all user preferences.
 
-## Quick Start
+#### Option A: One-Liner Global Installation (Recommended)
 
-### Server
+This is the fastest and easiest method. It automatically detects your operating system, downloads the correct binary, and installs it globally so you can simply type `axon` in any terminal to start the server.
 
+**For Linux and macOS (or Git Bash on Windows):**
+Open your terminal and run:
 ```bash
-cd server
+curl -fsSL https://raw.githubusercontent.com/Kaia-Alenia/Axon/main/install.sh | bash
+```
+
+**For Windows (PowerShell):**
+Open PowerShell as Administrator and run:
+```powershell
+iwr -useb https://raw.githubusercontent.com/Kaia-Alenia/Axon/main/install.ps1 | iex
+```
+
+Once installed, you can launch the server from anywhere:
+```bash
+axon                # Start server with default ports
+axon --help         # Show all available commands and flags
+```
+
+#### Option B: Direct Binary Download
+
+If you prefer not to use an automated script, you can download the standalone executable for your specific system:
+
+- **Windows:** [axon-windows-amd64.exe](https://github.com/kaia-alenia/axon/releases/latest/download/axon-windows-amd64.exe)
+- **Linux (x86_64):** [axon-linux-amd64](https://github.com/kaia-alenia/axon/releases/latest/download/axon-linux-amd64)
+- **Linux (ARM64):** [axon-linux-arm64](https://github.com/kaia-alenia/axon/releases/latest/download/axon-linux-arm64)
+- **Linux (ARM):** [axon-linux-arm](https://github.com/kaia-alenia/axon/releases/latest/download/axon-linux-arm)
+- **macOS (Intel):** [axon-darwin-amd64](https://github.com/kaia-alenia/axon/releases/latest/download/axon-darwin-amd64)
+- **macOS (Apple Silicon):** [axon-darwin-arm64](https://github.com/kaia-alenia/axon/releases/latest/download/axon-darwin-arm64)
+
+*Note for Linux and macOS users: You will need to make the file executable before running it. Open a terminal and run `chmod +x filename`, then run it with `./filename`.*
+
+#### Option C: Build from Source
+
+For developers who wish to modify the code or compile it locally:
+
+1. Ensure you have Go 1.25 or higher installed.
+2. Clone the repository:
+```bash
+git clone https://github.com/Kaia-Alenia/Axon.git
+cd Axon/server
+```
+3. Build the server:
+```bash
 go build -o axon .
+```
+4. Run the server:
+```bash
 ./axon
 ```
 
-A QR code will appear in your terminal. Scan it with your phone or open the displayed URL in any browser.
+## Connecting and Using Axon
 
-### Android App
+Once the server is running on your computer, a QR code and connection details will be displayed in your terminal.
+
+1. Open the Axon app on your Android device.
+2. Select your preferred connection method:
+   - **USB/ADB (Highly Recommended):** Provides the absolute lowest latency (virtually instantaneous). Requires USB Debugging enabled on your phone.
+   - **Bluetooth (Recommended):** Delivers phenomenal 1ms-3ms latency, mimicking the feel of a premium wireless native mouse. Supported across Windows, macOS, and Linux.
+   - **Wi-Fi:** A reliable, high-speed alternative if Bluetooth or USB are unavailable. Connect by scanning the QR code or manually entering the IP address.
+
+## Server Commands and Configuration
+
+The Axon server is designed to be highly robust. If a requested port is occupied by another application, it will dynamically fall back to an available port to ensure it always starts successfully.
+
+Available flags:
 
 ```bash
-cd android
-./gradlew assembleDebug
+# Run with default ports (6969 for TCP/WebSocket, 6970 for UDP)
+axon
+
+# Use custom TCP/WebSocket port
+axon --port 7000
+
+# Use custom UDP port for the fast-input protocol
+axon --udp-port 7001
+
+# Auto-allocate all ports (let the OS choose available ports)
+axon --port 0 --udp-port 0
+
+# Display version information
+axon --version
 ```
-
-The APK will be at `android/app/build/outputs/apk/debug/`.
-
-If your conect via adb use
-
-```bash
-cd android
-./gradlew installdebug
-```
-
-## Connection Recommendations
-
-To get the best experience and minimize latency, the following guidelines are suggested:
-
-- **USB/ADB (Recommended)**: USB/ADB connection is recommended for an almost instantaneous response and minimal latency.
-- **Bluetooth**: Bluetooth offers good connectivity with moderate latency (if you have a good connection, this option provides good latency and is suitable for most users).
-- **Wi-Fi**: Wi-Fi is an alternative option (if you have a good connection, this option provides good latency and is suitable for most users).
-
-## Platform Support
-
-| Platform | Touchpad | Keyboard | Scroll | Bluetooth |
-|:---------|:--------:|:--------:|:------:|:---------:|
-| Linux    | Yes      | Yes      | Yes    | Yes       |
-| Windows  | Yes      | Yes      | Yes    | Yes       |
-| macOS    | Yes      | Yes      | Yes    | Yes       |
-
-## Tech Stack
-
-| Component | Technology |
-|:----------|:-----------|
-| Server    | Go 1.25, Gorilla WebSocket, go-qrcode |
-| Web Client | Vanilla HTML/CSS/JS (embedded via `embed.FS`) |
-| Android   | Kotlin, Jetpack Compose, Material 3 |
-| Protocol  | WebSocket (control) + UDP (low-latency input) |
 
 ## Contributing
 
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before getting started.
+We welcome contributions from the community. Please review our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before getting started.
 
 1. Fork the repository
-2. Create your branch (`git checkout -b feature/awesome`)
-3. Commit your changes (`git commit -m 'Add awesome feature'`)
-4. Push to branch (`git push origin feature/awesome`)
+2. Create your feature branch (`git checkout -b feature/advanced-gestures`)
+3. Commit your changes (`git commit -m 'Add advanced gesture support'`)
+4. Push to the branch (`git push origin feature/advanced-gestures`)
 5. Open a Pull Request
 
 ## Security
 
-Found a vulnerability? Please report it responsibly. See our [Security Policy](SECURITY.md) for details.
+If you discover a vulnerability, please report it responsibly. Refer to our [Security Policy](SECURITY.md) for detailed reporting procedures.
 
 ## License
 
-This project is licensed under the **GNU General Public License v3 (GPL v3)** — see the [LICENSE](LICENSE) file for details.
+This project is strictly licensed under the **GNU General Public License v3 (GPL v3)**. Please see the [LICENSE](LICENSE) file for comprehensive details. Assets and music (where applicable) are licensed under the Alenia Studios Standard (CC BY 4.0 + Additional Terms).
 
 ---
 
 <div align="center">
 
-**AXON** · [contact.axon@gmail.com](mailto:contact.axon@gmail.com)
+**AXON** · [contact.aleniastudios@gmail.com](mailto:contact.aleniastudios@gmail.com)
 
 </div>

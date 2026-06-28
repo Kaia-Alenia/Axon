@@ -1,5 +1,4 @@
 package com.example.axon.ui
-
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.LinearEasing
@@ -61,7 +60,6 @@ import androidx.compose.ui.window.DialogProperties
 import com.example.axon.R
 import kotlin.math.cos
 import kotlin.math.sin
-
 private val BgGradStart  = Color(0xFF0F172A)
 private val BgGradEnd    = Color(0xFF020617)
 private val AccentGlow   = Color(0xFF1E3A8A)
@@ -72,11 +70,9 @@ private val VioletAccent = Color(0xFF8B5CF6)
 private val TextPrimary  = Color(0xFFF9FAFB)
 private val TextSecond   = Color(0xFF94A3B8)
 private val BorderColor  = Color(0xFF334155)
-
 private val px = floatArrayOf(0.15f, 0.85f, 0.25f, 0.75f, 0.5f, 0.35f, 0.65f, 0.2f, 0.8f, 0.9f)
 private val py = floatArrayOf(0.2f, 0.15f, 0.75f, 0.8f, 0.65f, 0.45f, 0.35f, 0.55f, 0.6f, 0.4f)
 private val pr = floatArrayOf(4f, 6f, 5f, 8f, 5f, 7f, 4f, 6f, 5f, 7f)
-
 @Composable
 fun StartScreen(
     onStart: () -> Unit,
@@ -85,19 +81,15 @@ fun StartScreen(
 ) {
     var showGuide by remember { mutableStateOf(false) }
     var showLicense by remember { mutableStateOf(false) }
-
     val fadeIn   = remember { Animatable(0f) }
     val slideUp  = remember { Animatable(30f) }
     val btnScale = remember { Animatable(0.9f) }
-
     LaunchedEffect(Unit) {
         fadeIn.animateTo(1f, tween(800, easing = EaseOutCubic))
         slideUp.animateTo(0f, tween(800, easing = EaseOutCubic))
         btnScale.animateTo(1f, tween(600, easing = EaseOutCubic))
     }
-
     val transition = rememberInfiniteTransition(label = "pulse")
-    
     val timeValue by transition.animateFloat(
         initialValue = 0f,
         targetValue = 2f * Math.PI.toFloat(),
@@ -107,7 +99,6 @@ fun StartScreen(
         ),
         label = "time"
     )
-
     val pulseA by transition.animateFloat(
         initialValue = 0.3f,
         targetValue = 0.8f,
@@ -126,7 +117,6 @@ fun StartScreen(
         animationSpec = infiniteRepeatable(tween(3000), RepeatMode.Reverse),
         label = "float"
     )
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -142,9 +132,7 @@ fun StartScreen(
                 radius = size.minDimension * 0.7f,
                 center = Offset(size.width / 2f, size.height * 0.3f)
             )
-
             val twelvePx = 12.dp.toPx()
-
             for (i in px.indices) {
                 val dx = sin(timeValue + i * 1.5f) * twelvePx
                 val dy = cos(timeValue + i * 2.0f) * twelvePx
@@ -157,7 +145,6 @@ fun StartScreen(
                 )
             }
         }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -167,7 +154,6 @@ fun StartScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(48.dp))
-
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(24.dp))
@@ -197,9 +183,7 @@ fun StartScreen(
                     fontWeight = if (currentLanguage == "es") FontWeight.Bold else FontWeight.Normal
                 )
             }
-
             Spacer(modifier = Modifier.weight(1f))
-
             Box(
                 modifier = Modifier
                     .size(150.dp)
@@ -210,7 +194,6 @@ fun StartScreen(
                     val cx = size.width / 2f
                     val cy = size.height / 2f
                     val r = size.minDimension / 2f
-
                     drawCircle(
                         color = BlueAccent.copy(alpha = pulseA * 0.10f),
                         radius = r * pulseR,
@@ -231,7 +214,6 @@ fun StartScreen(
                         center = Offset(cx, cy),
                         style = Stroke(width = 2.dp.toPx())
                     )
-
                     val nodes = 6
                     for (i in 0 until nodes) {
                         val angle = (i * 2 * Math.PI / nodes).toFloat()
@@ -249,20 +231,17 @@ fun StartScreen(
                             strokeWidth = 1.dp.toPx()
                         )
                     }
-
                     drawCircle(
                         color = BlueAccent,
                         radius = 5.dp.toPx(),
                         center = Offset(cx, cy)
                     )
-
                     val iconSize = r * 0.45f
                     val left  = cx - iconSize * 0.6f
                     val right = cx + iconSize * 0.6f
                     val top   = cy - iconSize * 0.7f
                     val base  = cy + iconSize * 0.5f
                     val mid   = cy - iconSize * 0.05f
-
                     val aPath = Path().apply {
                         moveTo(cx, top)
                         lineTo(right, base)
@@ -272,7 +251,6 @@ fun StartScreen(
                         lineTo(right - (right - left) * 0.22f, mid)
                     }
                     drawPath(aPath, color = TextPrimary, style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round))
-
                     val curW = iconSize * 0.32f
                     val curH = iconSize * 0.4f
                     val curX = cx + iconSize * 0.18f
@@ -290,9 +268,7 @@ fun StartScreen(
                     drawPath(cursorPath, color = VioletAccent)
                 }
             }
-
             Spacer(modifier = Modifier.height(24.dp))
-
             Text(
                 text = "AXON",
                 color = TextPrimary,
@@ -308,9 +284,7 @@ fun StartScreen(
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
             )
-
             Spacer(modifier = Modifier.weight(1f))
-
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -338,9 +312,7 @@ fun StartScreen(
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(24.dp))
-
             Button(
                 onClick = onStart,
                 modifier = Modifier
@@ -375,9 +347,7 @@ fun StartScreen(
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
@@ -400,9 +370,7 @@ fun StartScreen(
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(24.dp))
-
             Text(
                 text = "Alenia Studios · GPL v3",
                 color = TextSecond.copy(alpha = 0.5f),
@@ -412,16 +380,13 @@ fun StartScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
-
     if (showGuide) {
         ConnectionGuideDialog(onDismiss = { showGuide = false })
     }
-
     if (showLicense) {
         LicenseDialog(onDismiss = { showLicense = false })
     }
 }
-
 @Composable
 fun ConnectionGuideDialog(onDismiss: () -> Unit) {
     Dialog(
@@ -450,7 +415,6 @@ fun ConnectionGuideDialog(onDismiss: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(20.dp))
-
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -471,7 +435,6 @@ fun ConnectionGuideDialog(onDismiss: () -> Unit) {
                         description = stringResource(id = R.string.guide_bt_step)
                     )
                 }
-
                 Spacer(modifier = Modifier.height(20.dp))
                 Button(
                     onClick = onDismiss,
@@ -489,7 +452,6 @@ fun ConnectionGuideDialog(onDismiss: () -> Unit) {
         }
     }
 }
-
 @Composable
 fun GuideSection(title: String, description: String) {
     Card(
@@ -516,7 +478,6 @@ fun GuideSection(title: String, description: String) {
         }
     }
 }
-
 @Composable
 fun LicenseDialog(onDismiss: () -> Unit) {
     Dialog(
@@ -545,7 +506,6 @@ fun LicenseDialog(onDismiss: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(20.dp))
-
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -566,7 +526,6 @@ fun LicenseDialog(onDismiss: () -> Unit) {
                         description = stringResource(id = R.string.license_contact_desc)
                     )
                 }
-
                 Spacer(modifier = Modifier.height(20.dp))
                 Button(
                     onClick = onDismiss,
@@ -584,7 +543,6 @@ fun LicenseDialog(onDismiss: () -> Unit) {
         }
     }
 }
-
 @Composable
 fun LicenseSection(title: String, description: String) {
     Card(

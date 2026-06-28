@@ -1,5 +1,4 @@
 package com.example.axon.network
-
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
@@ -8,21 +7,17 @@ import org.json.JSONObject
 import java.io.OutputStream
 import java.util.UUID
 import java.util.concurrent.Executors
-
 class BluetoothClient(private val listener: ConnectionListener) : InputClient {
     private var socket: BluetoothSocket? = null
     private var outputStream: OutputStream? = null
     private var connectedDeviceAddress: String = ""
     private val sendExecutor = Executors.newSingleThreadExecutor()
-
     interface ConnectionListener {
         fun onConnected()
         fun onDisconnected()
         fun onError(message: String)
     }
-
     override fun getServerIp(): String = connectedDeviceAddress
-
     @SuppressLint("MissingPermission")
     fun connect(deviceAddress: String) {
         connectedDeviceAddress = deviceAddress
@@ -53,7 +48,6 @@ class BluetoothClient(private val listener: ConnectionListener) : InputClient {
             }
         }.start()
     }
-
     override fun disconnect() {
         try {
             socket?.close()
@@ -62,7 +56,6 @@ class BluetoothClient(private val listener: ConnectionListener) : InputClient {
         outputStream = null
         listener.onDisconnected()
     }
-
     private fun send(message: String) {
         sendExecutor.execute {
             try {
@@ -73,36 +66,28 @@ class BluetoothClient(private val listener: ConnectionListener) : InputClient {
             }
         }
     }
-
     override fun sendMove(dx: Double, dy: Double) {
         send("{\"type\":\"move\",\"dx\":$dx,\"dy\":$dy}")
     }
-
     override fun sendClick(button: String) {
         send("{\"type\":\"click\",\"button\":\"$button\"}")
     }
-
     override fun sendMouseDown(button: String) {
         send("{\"type\":\"mousedown\",\"button\":\"$button\"}")
     }
-
     override fun sendMouseUp(button: String) {
         send("{\"type\":\"mouseup\",\"button\":\"$button\"}")
     }
-
     override fun sendScroll(dy: Double) {
         send("{\"type\":\"scroll\",\"dy\":$dy}")
     }
-
     override fun sendType(text: String) {
         val escaped = text.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
         send("{\"type\":\"type\",\"text\":\"$escaped\"}")
     }
-
     override fun sendKey(key: String) {
         send("{\"type\":\"key\",\"key\":\"$key\"}")
     }
-
     override fun sendKeyCombo(modifier: String, key: String) {
         send("{\"type\":\"keycombo\",\"modifier\":\"$modifier\",\"key\":\"$key\"}")
     }

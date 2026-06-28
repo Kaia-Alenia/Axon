@@ -9,6 +9,12 @@ local.properties
 # Go binaries
 server/axon
 server/axon.exe
+server/axon-linux-*
+server/axon-macos-*
+server/axon-windows-*
+server/build/
+*.test
+*.out
 
 # Android build
 android/build/
@@ -16,6 +22,7 @@ android/app/build/
 android/.kotlin/
 android/captures/
 android/.externalNativeBuild/
+android/app/release/
 
 # OS
 .superpowers/
@@ -23,4 +30,4 @@ android/.externalNativeBuild/
 *.dll
 *.so
 *.dylib
-.vscode/
+.vscode/dist/
