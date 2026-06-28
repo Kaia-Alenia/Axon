@@ -109,9 +109,9 @@ cd android
 
 To get the best experience and minimize latency, the following guidelines are suggested:
 
-- **Local & Minimum Latency (Recommended)**: USB/ADB connection is recommended for an almost instantaneous response.
-- **Wi-Fi vs Bluetooth**: It is recommended to use Wi-Fi over Bluetooth due to its higher speed and lower latency.
-- **Bluetooth**: Bluetooth is only recommended in specific cases where no Wi-Fi network or USB cable is available.
+- **USB/ADB (Recommended)**: USB/ADB connection is recommended for an almost instantaneous response and minimal latency.
+- **Bluetooth**: Bluetooth offers good connectivity with moderate latency (if you have a good connection, this option provides good latency and is suitable for most users).
+- **Wi-Fi**: Wi-Fi is an alternative option (if you have a good connection, this option provides good latency and is suitable for most users).
 
 ## Platform Support
 
