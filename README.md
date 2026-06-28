@@ -118,8 +118,8 @@ To get the best experience and minimize latency, the following guidelines are su
 | Platform | Touchpad | Keyboard | Scroll | Bluetooth |
 |:---------|:--------:|:--------:|:------:|:---------:|
 | Linux    | Yes      | Yes      | Yes    | Yes       |
-| Windows  | Yes      | Yes      | Yes    | Planned   |
-| macOS    | Yes      | Yes      | Yes    | Planned   |
+| Windows  | Yes      | Yes      | Yes    | Yes       |
+| macOS    | Yes      | Yes      | Yes    | Yes       |
 
 ## Tech Stack
 
