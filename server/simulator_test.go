@@ -1,7 +1,9 @@
 package main
+
 import (
 	"testing"
 )
+
 func TestNewSimulator(t *testing.T) {
 	sim := NewSimulator()
 	if sim == nil {

@@ -1,20 +1,23 @@
 //go:build darwin
+
 package main
-import "C"
+
 import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"io"
+
 	"net"
 	"sync"
 	"time"
 )
+
 var (
 	bluetoothListenerDarwin net.Listener
 	bluetoothConnMutex      sync.Mutex
 	bluetoothConnections    = make(map[net.Conn]bool)
 )
+
 func startBluetoothServer() {
 	fmt.Println("[BT] Starting native RFCOMM server on macOS")
 	go startNativeRFCOMMServer()

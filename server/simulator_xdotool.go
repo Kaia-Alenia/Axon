@@ -1,31 +1,35 @@
 //go:build linux || darwin
+
 package main
+
 import (
 	"fmt"
+	"github.com/bendahl/uinput"
 	"os/exec"
 	"strings"
 	"sync"
-	"github.com/bendahl/uinput"
 )
+
 var keyMap = map[string]int{
-	"Return":    uinput.KeyEnter,
-	"BackSpace": uinput.KeyBackspace,
-	"space":     uinput.KeySpace,
-	"Escape":    uinput.KeyEsc,
-	"Tab":       uinput.KeyTab,
-	"Up":        uinput.KeyUp,
-	"Down":      uinput.KeyDown,
-	"Left":      uinput.KeyLeft,
-	"Right":     uinput.KeyRight,
-	"Home":      uinput.KeyHome,
-	"End":       uinput.KeyEnd,
-	"Prior":     uinput.KeyPageup,
-	"Next":      uinput.KeyPagedown,
-	"Delete":    uinput.KeyDelete,
-	"F5":        uinput.KeyF5,
+	"Return":     uinput.KeyEnter,
+	"BackSpace":  uinput.KeyBackspace,
+	"space":      uinput.KeySpace,
+	"Escape":     uinput.KeyEsc,
+	"Tab":        uinput.KeyTab,
+	"Up":         uinput.KeyUp,
+	"Down":       uinput.KeyDown,
+	"Left":       uinput.KeyLeft,
+	"Right":      uinput.KeyRight,
+	"Home":       uinput.KeyHome,
+	"End":        uinput.KeyEnd,
+	"Prior":      uinput.KeyPageup,
+	"Next":       uinput.KeyPagedown,
+	"Delete":     uinput.KeyDelete,
+	"F5":         uinput.KeyF5,
 	"volumeup":   uinput.KeyVolumeup,
 	"volumedown": uinput.KeyVolumedown,
 }
+
 type LinuxSimulator struct {
 	mu       sync.Mutex
 	mouse    uinput.Mouse
@@ -33,6 +37,7 @@ type LinuxSimulator struct {
 	ch       chan string
 	closed   bool
 }
+
 func initSimulator() InputSimulator {
 	s := &LinuxSimulator{
 		ch: make(chan string, 200),
@@ -185,6 +190,7 @@ func (s *LinuxSimulator) executeCmd(cmdStr string) {
 		}
 	}
 }
+
 var runeToKey = map[rune]int{
 	'a': uinput.KeyA, 'b': uinput.KeyB, 'c': uinput.KeyC, 'd': uinput.KeyD,
 	'e': uinput.KeyE, 'f': uinput.KeyF, 'g': uinput.KeyG, 'h': uinput.KeyH,
@@ -220,6 +226,7 @@ var shiftRuneMap = map[rune]rune{
 	';': ',',
 	':': '.',
 }
+
 func (s *LinuxSimulator) typeChar(char rune) {
 	if s.keyboard == nil {
 		return

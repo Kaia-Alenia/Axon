@@ -1,11 +1,13 @@
 package main
+
 import (
+	"github.com/gorilla/websocket"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"github.com/gorilla/websocket"
 )
+
 func TestWebSocketOrigin(t *testing.T) {
 	activeToken = "test_token"
 	server := httptest.NewServer(http.HandlerFunc(handleWebSocket))

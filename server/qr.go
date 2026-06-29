@@ -1,11 +1,13 @@
 package main
+
 import (
 	"fmt"
+	"github.com/skip2/go-qrcode"
 	"strconv"
 	"strings"
 	"unicode/utf8"
-	"github.com/skip2/go-qrcode"
 )
+
 func printTerminalQRCode(url string) {
 	qrCode, err := qrcode.New(url, qrcode.Medium)
 	if err == nil {

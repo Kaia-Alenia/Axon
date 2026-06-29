@@ -1,4 +1,5 @@
 package main
+
 type InputSimulator interface {
 	MoveMouse(dx, dy float64)
 	Click(button string)
@@ -10,6 +11,7 @@ type InputSimulator interface {
 	KeyCombo(modifier, key string)
 	Close()
 }
+
 func NewSimulator() InputSimulator {
 	return initSimulator()
 }

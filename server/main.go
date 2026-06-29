@@ -1,4 +1,5 @@
 package main
+
 import (
 	"context"
 	"crypto/rand"
@@ -6,6 +7,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/gorilla/websocket"
 	"io/fs"
 	"math"
 	"net"
@@ -14,12 +16,12 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
-	"github.com/gorilla/websocket"
 )
+
 //go:embed web/*
 var webFS embed.FS
+
 func setupADBReverse() {
 	portStr := fmt.Sprintf("tcp:%d", port)
 	if err := exec.Command("adb", "reverse", portStr, portStr).Run(); err != nil {
@@ -92,16 +94,7 @@ func getLocalIP() string {
 }
 func createListenerWithReuseAddr(port int) (net.Listener, error) {
 	lc := net.ListenConfig{
-		Control: func(network, address string, c syscall.RawConn) error {
-			var opErr error
-			err := c.Control(func(fd uintptr) {
-				opErr = syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, syscall.SO_REUSEADDR, 1)
-			})
-			if opErr != nil {
-				return opErr
-			}
-			return err
-		},
+		Control: setReuseAddrControl,
 	}
 	return lc.Listen(context.Background(), "tcp", fmt.Sprintf(":%d", port))
 }
@@ -141,6 +134,7 @@ func tryUDPPortWithFallback(requestedPort int) (*net.UDPConn, int, error) {
 	fmt.Printf("[PORT] Successfully allocated dynamic UDP port: %d\n", actualPort)
 	return conn, actualPort, nil
 }
+
 var (
 	activeClientIP    string
 	activeClientNetIP net.IP
@@ -150,6 +144,7 @@ var (
 	port              int
 	udpPort           int
 )
+
 type ClientMessage struct {
 	Type      string  `json:"type"`
 	Dx        float64 `json:"dx"`
@@ -160,10 +155,12 @@ type ClientMessage struct {
 	Modifier  string  `json:"modifier"`
 	Timestamp int64   `json:"timestamp"`
 }
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  4096,
 	WriteBufferSize: 4096,
 }
+
 func generateToken() string {
 	const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	b := make([]byte, 8)

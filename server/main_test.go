@@ -1,9 +1,11 @@
 package main
+
 import (
 	"strings"
 	"testing"
 	"unicode/utf8"
 )
+
 func TestGetRGBColor(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -29,7 +31,9 @@ func TestGetRGBColor(t *testing.T) {
 		})
 	}
 }
+
 var testQRStr = strings.Repeat("█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄█▀▄\n", 100)
+
 func BenchmarkPrintQRRainbow_OriginalRunesCount(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		lines := strings.Split(testQRStr, "\n")

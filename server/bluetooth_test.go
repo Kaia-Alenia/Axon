@@ -1,4 +1,5 @@
 package main
+
 import (
 	"bufio"
 	"encoding/json"
@@ -9,6 +10,7 @@ import (
 	"testing"
 	"time"
 )
+
 type MockSimulator struct {
 	lastMove      [2]float64
 	lastClick     string
@@ -19,6 +21,7 @@ type MockSimulator struct {
 	lastKey       string
 	lastCombo     [2]string
 }
+
 func (m *MockSimulator) MoveMouse(dx, dy float64) {
 	m.lastMove = [2]float64{dx, dy}
 }

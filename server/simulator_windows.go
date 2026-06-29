@@ -1,10 +1,13 @@
 //go:build windows
+
 package main
+
 import (
 	"syscall"
 	"time"
 	"unsafe"
 )
+
 type MouseInput struct {
 	Dx          int32
 	Dy          int32
@@ -30,11 +33,14 @@ type InputKeyboardStruct struct {
 	Ki   KeyboardInput
 	Pad  [8]byte
 }
+
 var (
 	user32        = syscall.NewLazyDLL("user32.dll")
 	procSendInput = user32.NewProc("SendInput")
 )
+
 type WindowsSimulator struct{}
+
 func initSimulator() InputSimulator {
 	return &WindowsSimulator{}
 }

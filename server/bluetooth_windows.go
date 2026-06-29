@@ -1,20 +1,23 @@
 //go:build windows
+
 package main
-import "C"
+
 import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"io"
+
 	"net"
 	"sync"
 	"time"
 )
+
 var (
 	bluetoothListenerWindows net.Listener
 	bluetoothConnMutex       sync.Mutex
 	bluetoothConnections     = make(map[net.Conn]bool)
 )
+
 func startBluetoothServer() {
 	fmt.Println("[BT] Starting native RFCOMM server on Windows")
 	go startNativeRFCOMMServer()

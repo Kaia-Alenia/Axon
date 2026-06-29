@@ -1,12 +1,15 @@
 //go:build linux
+
 package main
+
 import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"os"
 	"golang.org/x/sys/unix"
+	"os"
 )
+
 func startBluetoothServer() {
 	fd, err := unix.Socket(unix.AF_BLUETOOTH, unix.SOCK_STREAM, unix.BTPROTO_RFCOMM)
 	if err != nil {
@@ -16,7 +19,7 @@ func startBluetoothServer() {
 	defer unix.Close(fd)
 	addr := &unix.SockaddrRFCOMM{
 		Channel: 1,
-		Addr:    [6]uint8{0, 0, 0, 0, 0, 0}, 
+		Addr:    [6]uint8{0, 0, 0, 0, 0, 0},
 	}
 	if err := unix.Bind(fd, addr); err != nil {
 		fmt.Println("Error binding to Bluetooth (maybe another service is using channel 1):", err)
