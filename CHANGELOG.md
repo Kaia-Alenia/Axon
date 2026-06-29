@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Fixed compilation error on Windows related to `SO_REUSEADDR` by adding platform-specific socket control logic.
 
 ### Added
+- Super fast low-latency Bluetooth connectivity for Windows and macOS
+- New gestures for zooming
+- Volume control using hardware volume up/down buttons
 - Go server with WebSocket + UDP protocol for low-latency input
 - Embedded web client (touchpad, scroll, keyboard, mouse buttons)
 - Native Android client with Jetpack Compose
