@@ -170,6 +170,21 @@ brew install android-platform-tools
 
 After installing ADB, connect your Android device via USB, enable USB Debugging in Developer Options, and restart Axon. The warning will disappear once a device is detected.
 
+### Viewing Your Phone on Your PC (scrcpy)
+
+If you want to view and control your Android device screen directly from your PC (which pairs perfectly with Axon over ADB), the tool you are looking for is **scrcpy** (Screen Copy).
+
+**Installation:**
+- **Windows:** You can download it from their [official GitHub repository](https://github.com/Genymobile/scrcpy) or install via scoop (`scoop install scrcpy`).
+- **macOS:** `brew install scrcpy`
+- **Linux:** `sudo apt install scrcpy`
+
+**Usage:**
+Once installed and your device is connected via ADB, simply run this command in your terminal:
+```bash
+scrcpy
+```
+
 ## Contributing
 
 We welcome contributions from the community. Please review our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before getting started.
