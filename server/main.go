@@ -23,10 +23,11 @@ import (
 var webFS embed.FS
 
 func setupADBReverse() {
-	portStr := fmt.Sprintf("tcp:%d", port)
-	if err := exec.Command("adb", "reverse", portStr, portStr).Run(); err != nil {
-		fmt.Printf("[ADB] Warning: failed to setup adb reverse for port %d: %v\n", port, err)
+	if _, err := exec.LookPath("adb"); err != nil {
+		return
 	}
+	portStr := fmt.Sprintf("tcp:%d", port)
+	_ = exec.Command("adb", "reverse", portStr, portStr).Run()
 }
 func getRGBColor(phase float64) (int, int, int) {
 	r := int(127.0 + 127.0*math.Sin(2.0*math.Pi*phase+0.0))
@@ -316,6 +317,9 @@ func startUDPServer(conn *net.UDPConn) {
 	}
 }
 func startADBKeepalive() {
+	if _, err := exec.LookPath("adb"); err != nil {
+		return
+	}
 	portStr := fmt.Sprintf("tcp:%d", port)
 	for {
 		time.Sleep(3 * time.Second)
