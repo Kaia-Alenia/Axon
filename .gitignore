@@ -31,3 +31,4 @@ android/app/release/
 *.so
 *.dylib
 .vscode/dist/
+build/

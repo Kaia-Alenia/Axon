@@ -8,12 +8,14 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"io"
 	"io/fs"
 	"math"
 	"net"
 	"net/http"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -333,8 +335,64 @@ func startADBKeepalive() {
 		}
 	}
 }
+func selfUpdate() {
+	goos := runtime.GOOS
+	goarch := runtime.GOARCH
+	archName := goarch
+	if goarch == "amd64" {
+		archName = "amd64"
+	} else if goarch == "arm64" {
+		archName = "arm64"
+	} else if goarch == "arm" {
+		archName = "arm"
+	}
+	binaryName := fmt.Sprintf("axon-%s-%s", goos, archName)
+	if goos == "windows" {
+		binaryName += ".exe"
+	}
+	url := "https://github.com/Kaia-Alenia/Axon/releases/latest/download/" + binaryName
+	fmt.Printf("[UPDATE] Downloading latest version from:\n  %s\n", url)
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Printf("[UPDATE] Error: failed to connect: %v\n", err)
+		os.Exit(1)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("[UPDATE] Error: server returned %s\n", resp.Status)
+		os.Exit(1)
+	}
+	exePath, err := os.Executable()
+	if err != nil {
+		fmt.Printf("[UPDATE] Error: could not determine executable path: %v\n", err)
+		os.Exit(1)
+	}
+	tmpPath := exePath + ".new"
+	out, err := os.OpenFile(tmpPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+	if err != nil {
+		fmt.Printf("[UPDATE] Error: could not write update: %v\n", err)
+		os.Exit(1)
+	}
+	_, err = io.Copy(out, resp.Body)
+	out.Close()
+	if err != nil {
+		fmt.Printf("[UPDATE] Error: download failed: %v\n", err)
+		_ = os.Remove(tmpPath)
+		os.Exit(1)
+	}
+	if err := os.Rename(tmpPath, exePath); err != nil {
+		fmt.Printf("[UPDATE] Download complete. Could not auto-replace (file may be in use).\n")
+		fmt.Printf("[UPDATE] New binary saved at: %s\n", tmpPath)
+		fmt.Printf("[UPDATE] Manually replace the current binary with the downloaded file.\n")
+		os.Exit(0)
+	}
+	fmt.Println("[UPDATE] Update applied successfully. Restart axon to use the new version.")
+	os.Exit(0)
+}
+
 func main() {
 	showVersion := flag.Bool("version", false, "Show version information")
+	runUpdate := flag.Bool("update", false, "Download and install the latest version of Axon")
 	flag.IntVar(&port, "port", 6969, "TCP/WebSocket port to listen on (0 for auto-allocation)")
 	flag.IntVar(&udpPort, "udp-port", 6970, "UDP port for fast input protocol (0 for auto-allocation)")
 	flag.Parse()
@@ -342,6 +400,9 @@ func main() {
 		fmt.Println("Axon Server v1.0.0")
 		fmt.Println("High-speed wireless input bridge")
 		os.Exit(0)
+	}
+	if *runUpdate {
+		selfUpdate()
 	}
 	go startADBKeepalive()
 	simulator = NewSimulator()
@@ -382,15 +443,6 @@ func main() {
 	printLine(colorizeRainbow(" / ___ |/   / /_/ /    /  ", 0.4), lineDelay)
 	printLine(colorizeRainbow("/_/  |_/_/|_\\____/_/|_/   ", 0.4), lineDelay)
 	printLine(colorizeRainbow("    [ HIGH-SPEED INPUT BRIDGE ]", 0.6), lineDelay)
-	printLine("", 0)
-	printLine(colorizeRainbow("      ⢀⣀⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀", 0.8), lineDelay)
-	printLine(colorizeRainbow("  ⣠⡾⠋⠉⠉⠉⠻⣷⠶⠞⠛⠛⠛⠶⠾⠋⠉⠉⠉⠻⢷⡄⠀⠀⠀⠀⠀⠀⠀⢀⣴⢟⣿⡟⠀⣤⡶⣦", 0.8), lineDelay)
-	printLine(colorizeRainbow(" ⢠⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⠀⠀⠀⠀⠀⠀⣴⡿⠃⣼⡿⠀⣾⡟⣼⠇⠀⠀⠀⠀⠀⠀⠀⣿⣿⠇", 0.8), lineDelay)
-	printLine(colorizeRainbow("  ⢿⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⠀⠀⢀⣴⡟⠀⢀⣤⡶⠶⣾⣿⣦⣤⣿⣃⣸⣿⡿⢃⣤⢶⣄⢠⣄⣤⣤⠀⣨⣧⠀⣠⣤⣦⣤", 0.8), lineDelay)
-	printLine(colorizeRainbow("  ⢰⡟⠁⠀⣤⣤⣤⣤⡀⠀⠀⠀⢀⣶⣿⣿⣿⣿⣆⠈⢻⡆⢀⠹⠇⣠⣾⡟⠀⠀⢹⣿⠉⣿⡏⠀⣿⣧⠞⣩⣿⡟⣹⡟⢠⣿⠇⣼⡿⢁⣾⡟⢀⡄", 0.8), lineDelay)
-	printLine(colorizeRainbow("  ⢻⡇⠀⠐⣟⣉⡉⠙⠓⠀⢀⡀⠘⣿⣿⣿⣿⣼⠃⠀⢸⡗⢿⣷⣾⡿⠋⠀⠀⠀⠘⢿⡶⠛⠿⠟⠻⠷⠞⠛⠿⠁⠻⠿⠛⠿⠞⠻⠿⠛⠻⠷⠛", 0.8), lineDelay)
-	printLine(colorizeRainbow("  ⠈⢷⣄⠘⠛⠛⠀⠀⠸⣷⠿⠻⣾⠏⠈⠉⠽⠿⢟⣠⡿⠁⠀⠉⠉⠀⠀⠀⣶⡆⠰⣶⠆⡆⢰⠀⡶⢦⢠⡆⢠⠶⣄⢰⣶", 0.8), lineDelay)
-	printLine(colorizeRainbow("    ⠉⠛⠷⠶⠶⠶⠆⠙⠓⠚⠋⠰⠶⠶⠶⠞⠛⠉⠀⠀⠀⠀⠀⠀⠀⠀⠛⠋⠀⠛⠀⠙⠋⠀⠛⠋⠈⠃⠈⠛⠁⠘⠛⠁", 0.8), lineDelay)
 	printLine("", 0)
 	time.Sleep(80 * time.Millisecond)
 	printLine(colorizeRainbow("    ────────────────────────────────────────────────────", 0.5), lineDelay)
