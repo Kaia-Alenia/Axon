@@ -1,36 +1,36 @@
 # Axon Roadmap
 
-Este documento describe la visión a futuro y los planes de desarrollo para Axon. El objetivo es mantener una guía clara de las características planificadas, desde mejoras inmediatas hasta grandes saltos de plataforma.
+This document outlines the future vision and development plans for Axon. The goal is to maintain a clear guide of planned features, from immediate improvements to major platform expansions.
 
-## 🚀 Corto Plazo (Mejoras Inmediatas y Estabilidad)
+## 🚀 Short Term (Immediate Improvements & Stability)
 
-- **Seguridad y Privacidad:**
-  - [ ] Implementar un sistema de PIN/Contraseña para emparejamiento seguro (evitar conexiones no deseadas en redes públicas).
-  - [ ] Cifrado de extremo a extremo (E2EE) para la transmisión de las pulsaciones de teclado.
-- **Mejoras de Interfaz (Cliente):**
-  - [ ] Soporte completo para temas dinámicos (Material You) y modo oscuro/claro manual.
-  - [ ] Perfiles personalizados de sensibilidad y aceleración para el touchpad.
-- **Nuevos Modos de Control:**
-  - [ ] **Modo Presentación:** Interfaz simplificada con botones gigantes de siguiente/anterior para diapositivas (PowerPoint/Keynote) y un puntero láser virtual.
-  - [ ] **Controles Multimedia Dedicados:** Pantalla específica para controlar reproducción (Play/Pause, saltar pista, controles de volumen avanzados).
+- **Security & Privacy:**
+  - [ ] Implement a PIN/Password system for secure pairing (prevent unwanted connections on public networks).
+  - [ ] End-to-End Encryption (E2EE) for keystroke transmission.
+- **UI/UX Improvements (Client):**
+  - [ ] Full support for dynamic themes (Material You) and manual dark/light mode toggle.
+  - [ ] Custom profiles for touchpad sensitivity and acceleration.
+- **New Control Modes:**
+  - [ ] **Presentation Mode:** Simplified interface with giant next/previous buttons for slides (PowerPoint/Keynote) and a virtual laser pointer.
+  - [ ] **Dedicated Media Controls:** Specific screen for playback control (Play/Pause, skip track, advanced volume controls).
 
-## ⚡ Mediano Plazo (Evolución y Expansión)
+## ⚡ Medium Term (Evolution & Expansion)
 
-- **Soporte Multiplataforma para el Cliente:**
-  - [ ] **Cliente iOS:** Desarrollar la versión para iPhone/iPad (considerando Kotlin Multiplatform o Swift nativo).
-- **Interfaz Gráfica para el Servidor:**
-  - [ ] **Aplicación de Bandeja de Sistema (System Tray):** Crear una interfaz gráfica minimalista para el servidor en PC (Windows/Mac/Linux) para encender/apagar el servidor, ver dispositivos conectados y configurar puertos sin usar la terminal.
-- **Inputs Avanzados:**
-  - [ ] **Modo Gamepad (Giroscopio):** Usar los sensores de movimiento del teléfono (giroscopio/acelerómetro) para controlar juegos de conducción o simuladores de vuelo en la PC.
-  - [ ] **Dictado por Voz:** Usar el reconocimiento de voz del teléfono para escribir texto directamente en la PC de forma ultrarrápida.
+- **Cross-Platform Client Support:**
+  - [ ] **iOS Client:** Develop the version for iPhone/iPad (considering Kotlin Multiplatform or native Swift).
+- **Graphical Interface for the Server:**
+  - [ ] **System Tray Application:** Create a minimalist GUI for the PC server (Windows/Mac/Linux) to toggle the server, view connected devices, and configure ports without using the terminal.
+- **Advanced Inputs:**
+  - [ ] **Gamepad Mode (Gyroscope):** Use the phone's motion sensors (gyroscope/accelerometer) as a steering wheel for racing games or flight simulators on PC.
+  - [ ] **Voice Dictation:** Use the phone's speech-to-text capabilities to type text directly onto the PC at high speeds.
 
-## 🔭 Largo Plazo (Visión a Futuro)
+## 🔭 Long Term (Future Vision)
 
-- **Expansión a Smart TVs (Android TV / Google TV):**
-  - [ ] **Axon TV Server:** Adaptar el servidor para que se ejecute de forma nativa en televisores con Google TV.
-  - [ ] Usar la API de *AccessibilityService* para inyectar movimientos de ratón y clics en la interfaz de la TV.
-  - [ ] Permitir buscar películas o introducir contraseñas largas en la TV cómodamente desde el teclado del móvil.
-- **Screen Mirroring Ligero:**
-  - [ ] Transmitir la pantalla de la PC al teléfono a muy bajos FPS (para no afectar la latencia) de modo que se pueda controlar la PC incluso si el monitor está apagado o en otra habitación.
-- **Integración con Automatizaciones:**
-  - [ ] Atajos o *Intents* para permitir que apps como Tasker o atajos de Siri puedan ejecutar macros en la PC (ej. "Apagar PC" desde un comando de voz al celular).
+- **Expansion to Smart TVs (Android TV / Google TV):**
+  - [ ] **Axon TV Server:** Adapt the server to run natively on Google TV televisions.
+  - [ ] Use the *AccessibilityService* API to inject mouse movements and clicks into the TV interface.
+  - [ ] Allow users to search for movies or type long passwords on the TV comfortably from their mobile keyboard.
+- **Lightweight Screen Mirroring:**
+  - [ ] Cast the PC screen to the phone at very low FPS (to avoid impacting latency) so the PC can be controlled even if the monitor is off or in another room.
+- **Automation Integration:**
+  - [ ] Shortcuts or *Intents* to allow apps like Tasker or Siri Shortcuts to execute macros on the PC (e.g., "Turn off PC" from a voice command to the phone).
