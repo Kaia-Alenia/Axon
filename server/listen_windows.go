@@ -4,7 +4,18 @@ package main
 
 import (
 	"syscall"
+	"golang.org/x/sys/windows"
 )
+
+func init() {
+	// Enable Virtual Terminal Processing for Windows CMD
+	h := windows.Stdout
+	var mode uint32
+	if err := windows.GetConsoleMode(h, &mode); err == nil {
+		mode |= windows.ENABLE_VIRTUAL_TERMINAL_PROCESSING
+		windows.SetConsoleMode(h, mode)
+	}
+}
 
 func setReuseAddrControl(network, address string, c syscall.RawConn) error {
 	var opErr error
