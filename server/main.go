@@ -27,7 +27,9 @@ func setupADBReverse() {
 		return
 	}
 	portStr := fmt.Sprintf("tcp:%d", port)
-	_ = exec.Command("adb", "reverse", portStr, portStr).Run()
+	if err := exec.Command("adb", "reverse", portStr, portStr).Run(); err != nil {
+		fmt.Printf("[ADB] Warning: failed to setup adb reverse for port %d: exit status 1\n", port)
+	}
 }
 func getRGBColor(phase float64) (int, int, int) {
 	r := int(127.0 + 127.0*math.Sin(2.0*math.Pi*phase+0.0))

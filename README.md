@@ -139,6 +139,37 @@ axon --port 0 --udp-port 0
 axon --version
 ```
 
+## Troubleshooting
+
+### ADB Warning on Startup
+
+When starting the server, you may see the following message:
+
+```
+[ADB] Warning: failed to setup adb reverse for port 6969: exit status 1
+```
+
+**This is not an error.** Axon fully supports Wi-Fi and Bluetooth without ADB. This warning only appears when ADB is installed on your system but no Android device is connected via USB at the time the server starts.
+
+- **If you only use Wi-Fi or Bluetooth:** Ignore this message completely.
+- **If you want USB/ADB mode (lowest possible latency):** You need to install Android Platform Tools and connect your phone with USB Debugging enabled.
+
+#### Installing ADB (Android Platform Tools)
+
+**Linux:**
+```bash
+sudo apt install adb
+```
+
+**macOS (Homebrew):**
+```bash
+brew install android-platform-tools
+```
+
+**Windows:** Download the [Android Platform Tools ZIP](https://developer.android.com/tools/releases/platform-tools) from Google, extract it, and add the folder to your system `PATH`.
+
+After installing ADB, connect your Android device via USB, enable USB Debugging in Developer Options, and restart Axon. The warning will disappear once a device is detected.
+
 ## Contributing
 
 We welcome contributions from the community. Please review our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before getting started.

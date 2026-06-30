@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.3] - 2026-06-29
+
+### ✔️ Fixed
+- **ADB Warning:** Restored a clean, single-line ADB warning message. The verbose system error output is now suppressed; only a concise `exit status 1` notice is shown when ADB is installed but no device is connected.
+- **macOS Input Simulation:** Separated the Linux-specific input simulator (uinput/xdotool) from macOS. macOS now uses its own native simulator backed by `cliclick` (installable via Homebrew), preventing runtime failures on Apple Silicon and Intel Macs.
+
+### ✅ Added
+- **Troubleshooting Section (README):** Added a clear explanation of the ADB startup warning with platform-specific installation instructions for Android Platform Tools.
+
 ## [1.6.2] - 2026-06-29
 
 ### ✔️ Fixed
