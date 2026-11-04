@@ -44,12 +44,19 @@ Try {
 Write-Host "[SUCCESS] Downloaded successfully" -ForegroundColor Green
 Write-Host "[INSTALL] Installing to: $InstallPath" -ForegroundColor Cyan
 
-if (-not (Test-Path -Path $InstallDir)) {
+Get-Process -Name "axon" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+
+if (Test-Path -Path $InstallDir) {
+    Remove-Item -Path "$InstallDir\*" -Force -ErrorAction SilentlyContinue
+} else {
     New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
 }
 
 Copy-Item -Path $TempFile -Destination $InstallPath -Force
 Remove-Item -Path $TempFile -Force
+
+Remove-NetFirewallRule -DisplayName "Axon Server" -ErrorAction SilentlyContinue
+New-NetFirewallRule -DisplayName "Axon Server" -Direction Inbound -Program $InstallPath -Action Allow -Profile Any -ErrorAction SilentlyContinue | Out-Null
 
 
 $UserPath = [Environment]::GetEnvironmentVariable("PATH", "User")
