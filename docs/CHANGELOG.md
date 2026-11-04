@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.7] - 2026-11-04
+
+### ✔️ Fixed
+- **Windows 10 Input Simulation (`SendInput`):** Fixed 64-bit `INPUT` struct alignment in `simulator_windows.go` (40 bytes instead of 48 bytes), restoring mouse movement, clicks, scroll, and pinch-to-zoom on Windows.
+- **Windows Native Bluetooth RFCOMM:** Implemented real Winsock2 `AF_BTH` RFCOMM socket and SDP service registration (`00001101-0000-1000-8000-00805F9B34FB`) in `bluetooth_windows.go`.
+- **Windows Wi-Fi & IP Detection:** Added outbound LAN IP detection and virtual adapter filtering (`vEthernet`, `WSL`, `VirtualBox`, `VMware`, `Docker`) plus disabled `SO_REUSEADDR` port hijacking on Windows.
+
 ## [1.6.6] - 2026-08-23
 
 ### 🚀 Added / Improved

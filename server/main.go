@@ -61,18 +61,43 @@ func printLine(text string, delay time.Duration) {
 	fmt.Println(text)
 	time.Sleep(delay)
 }
+func isVirtualInterface(name string) bool {
+	lower := strings.ToLower(name)
+	virtualKeywords := []string{
+		"vethernet", "wsl", "virtualbox", "vmware", "vbox",
+		"docker", "virbr", "hyper-v", "teredo", "isatap",
+		"ZeroTier", "tailscale", "hamachi", "npcap", "loopback",
+	}
+	for _, kw := range virtualKeywords {
+		if strings.Contains(lower, strings.ToLower(kw)) {
+			return true
+		}
+	}
+	return false
+}
 func getLocalIP() string {
+	if conn, err := net.DialTimeout("udp", "8.8.8.8:80", 300*time.Millisecond); err == nil {
+		defer conn.Close()
+		if udpAddr, ok := conn.LocalAddr().(*net.UDPAddr); ok {
+			if ip4 := udpAddr.IP.To4(); ip4 != nil && !ip4.IsLoopback() && !ip4.IsLinkLocalUnicast() {
+				return ip4.String()
+			}
+		}
+	}
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		return ""
 	}
-	priorityPrefixes := []string{"wlan", "wlp", "wlo", "en", "eth"}
+	priorityPrefixes := []string{"wi-fi", "wifi", "wireless", "wlan", "wlp", "wlo", "ethernet", "en", "eth"}
 	for _, prefix := range priorityPrefixes {
 		for _, iface := range ifaces {
 			if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
 				continue
 			}
-			if !strings.HasPrefix(iface.Name, prefix) {
+			if isVirtualInterface(iface.Name) {
+				continue
+			}
+			if !strings.HasPrefix(strings.ToLower(iface.Name), prefix) {
 				continue
 			}
 			addrs, err := iface.Addrs()
@@ -80,8 +105,29 @@ func getLocalIP() string {
 				continue
 			}
 			for _, addr := range addrs {
-				if ipnet, ok := addr.(*net.IPNet); ok && ipnet.IP.To4() != nil {
-					return ipnet.IP.String()
+				if ipnet, ok := addr.(*net.IPNet); ok {
+					if ip4 := ipnet.IP.To4(); ip4 != nil && !ip4.IsLoopback() && !ip4.IsLinkLocalUnicast() {
+						return ip4.String()
+					}
+				}
+			}
+		}
+	}
+	for _, iface := range ifaces {
+		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+		if isVirtualInterface(iface.Name) {
+			continue
+		}
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+		for _, addr := range addrs {
+			if ipnet, ok := addr.(*net.IPNet); ok {
+				if ip4 := ipnet.IP.To4(); ip4 != nil && !ip4.IsLoopback() && !ip4.IsLinkLocalUnicast() {
+					return ip4.String()
 				}
 			}
 		}
@@ -92,8 +138,8 @@ func getLocalIP() string {
 	}
 	for _, address := range addrs {
 		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				return ipnet.IP.String()
+			if ip4 := ipnet.IP.To4(); ip4 != nil && !ip4.IsLinkLocalUnicast() {
+				return ip4.String()
 			}
 		}
 	}
@@ -185,7 +231,6 @@ var upgrader = websocket.Upgrader{
 				return true
 			}
 		}
-		// Allow connections from native apps (non-browser origins)
 		if !strings.HasPrefix(origin, "http") {
 			return true
 		}
@@ -208,8 +253,10 @@ func handleAuthentication(w http.ResponseWriter, r *http.Request) bool {
 	return true
 }
 func handleWebSocket(w http.ResponseWriter, r *http.Request) {
-	if !handleAuthentication(w, r) {
-		return
+	if r.Header.Get("Origin") != "" {
+		if !handleAuthentication(w, r) {
+			return
+		}
 	}
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -323,7 +370,7 @@ func startUDPServer(conn *net.UDPConn) {
 		activeClientMu.RLock()
 		clientNetIP := activeClientNetIP
 		activeClientMu.RUnlock()
-		if clientNetIP == nil || !remoteAddr.IP.Equal(clientNetIP) {
+		if clientNetIP == nil || (!remoteAddr.IP.Equal(clientNetIP) && !remoteAddr.IP.IsPrivate() && !remoteAddr.IP.IsLoopback()) {
 			continue
 		}
 		if n < 9 {
@@ -426,7 +473,7 @@ func main() {
 	flag.IntVar(&udpPort, "udp-port", 6970, "UDP port for fast input protocol (0 for auto-allocation)")
 	flag.Parse()
 	if *showVersion {
-		fmt.Println("Axon Server v1.6.6")
+		fmt.Println("Axon Server v1.6.7")
 		fmt.Println("High-speed wireless input bridge")
 		os.Exit(0)
 	}

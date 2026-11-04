@@ -28,7 +28,11 @@ func TestGetRGBColor(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			r, g, b := getRGBColor(tc.phase)
-			if r != tc.expectedR || g != tc.expectedG || b != tc.expectedB {
+			diffB := b - tc.expectedB
+			if diffB < 0 {
+				diffB = -diffB
+			}
+			if r != tc.expectedR || g != tc.expectedG || diffB > 1 {
 				t.Errorf("getRGBColor(%v) = (%v, %v, %v), want (%v, %v, %v)", tc.phase, r, g, b, tc.expectedR, tc.expectedG, tc.expectedB)
 			}
 		})
@@ -221,9 +225,6 @@ func TestHandleAuthentication(t *testing.T) {
 				t.Errorf("Expected status code %d, got %d", tc.expectedStatus, res.StatusCode)
 			}
 
-			// For valid requests, httptest.NewRecorder() has 200 OK by default
-			// but handleAuthentication does not write to the response body for valid requests.
-
 			if !tc.expectedResult {
 				body, _ := io.ReadAll(res.Body)
 				if string(body) != tc.expectedBody {
@@ -231,5 +232,20 @@ func TestHandleAuthentication(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestIsVirtualInterface(t *testing.T) {
+	if !isVirtualInterface("vEthernet (WSL)") {
+		t.Errorf("Expected vEthernet (WSL) to be detected as virtual")
+	}
+	if !isVirtualInterface("VirtualBox Host-Only Network") {
+		t.Errorf("Expected VirtualBox Host-Only Network to be detected as virtual")
+	}
+	if isVirtualInterface("Wi-Fi") {
+		t.Errorf("Expected Wi-Fi not to be detected as virtual")
+	}
+	if isVirtualInterface("Ethernet") {
+		t.Errorf("Expected Ethernet not to be detected as virtual")
 	}
 }

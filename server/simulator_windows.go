@@ -3,6 +3,8 @@
 package main
 
 import (
+	"strings"
+	"sync"
 	"syscall"
 	"time"
 	"unsafe"
@@ -26,7 +28,6 @@ type KeyboardInput struct {
 type InputUnion struct {
 	Type uint32
 	Mi   MouseInput
-	Pad  [8]byte
 }
 type InputKeyboardStruct struct {
 	Type uint32
@@ -39,7 +40,11 @@ var (
 	procSendInput = user32.NewProc("SendInput")
 )
 
-type WindowsSimulator struct{}
+type WindowsSimulator struct {
+	mu   sync.Mutex
+	remX float64
+	remY float64
+}
 
 func initSimulator() InputSimulator {
 	return &WindowsSimulator{}
@@ -62,7 +67,19 @@ func (s *WindowsSimulator) sendKeyboardInput(dwFlags uint32, wVk, wScan uint16) 
 	procSendInput.Call(1, uintptr(unsafe.Pointer(&input)), uintptr(unsafe.Sizeof(input)))
 }
 func (s *WindowsSimulator) MoveMouse(dx, dy float64) {
-	s.sendMouseInput(0x0001, int32(dx), int32(dy), 0)
+	s.mu.Lock()
+	s.remX += dx
+	s.remY += dy
+	ix := int32(s.remX)
+	iy := int32(s.remY)
+	if ix == 0 && iy == 0 {
+		s.mu.Unlock()
+		return
+	}
+	s.remX -= float64(ix)
+	s.remY -= float64(iy)
+	s.mu.Unlock()
+	s.sendMouseInput(0x0001, ix, iy, 0)
 }
 func (s *WindowsSimulator) Click(button string) {
 	s.MouseDown(button)
@@ -102,58 +119,58 @@ func (s *WindowsSimulator) Type(text string) {
 }
 func (s *WindowsSimulator) Key(key string) {
 	var vk uint16
-	switch key {
-	case "BackSpace":
+	switch strings.ToLower(key) {
+	case "backspace":
 		vk = 0x08
-	case "Return":
+	case "return", "enter":
 		vk = 0x0D
-	case "Tab":
+	case "tab":
 		vk = 0x09
-	case "Escape":
+	case "escape", "esc":
 		vk = 0x1B
 	case "space":
 		vk = 0x20
-	case "Up":
+	case "up":
 		vk = 0x26
-	case "Down":
+	case "down":
 		vk = 0x28
-	case "Left":
+	case "left":
 		vk = 0x25
-	case "Right":
+	case "right":
 		vk = 0x27
-	case "Home":
+	case "home":
 		vk = 0x24
-	case "End":
+	case "end":
 		vk = 0x23
-	case "Prior":
+	case "prior", "pageup":
 		vk = 0x21
-	case "Next":
+	case "next", "pagedown":
 		vk = 0x22
-	case "Delete":
+	case "delete", "del":
 		vk = 0x2E
-	case "F1":
+	case "f1":
 		vk = 0x70
-	case "F2":
+	case "f2":
 		vk = 0x71
-	case "F3":
+	case "f3":
 		vk = 0x72
-	case "F4":
+	case "f4":
 		vk = 0x73
-	case "F5":
+	case "f5":
 		vk = 0x74
-	case "F6":
+	case "f6":
 		vk = 0x75
-	case "F7":
+	case "f7":
 		vk = 0x76
-	case "F8":
+	case "f8":
 		vk = 0x77
-	case "F9":
+	case "f9":
 		vk = 0x78
-	case "F10":
+	case "f10":
 		vk = 0x79
-	case "F11":
+	case "f11":
 		vk = 0x7A
-	case "F12":
+	case "f12":
 		vk = 0x7B
 	case "volumeup":
 		vk = 0xAF
@@ -167,7 +184,7 @@ func (s *WindowsSimulator) Key(key string) {
 }
 func (s *WindowsSimulator) KeyCombo(modifier, key string) {
 	var modVk uint16
-	switch modifier {
+	switch strings.ToLower(modifier) {
 	case "ctrl":
 		modVk = 0x11
 	case "alt":
@@ -178,7 +195,11 @@ func (s *WindowsSimulator) KeyCombo(modifier, key string) {
 		return
 	}
 	var keyVk uint16
-	if len(key) == 1 {
+	if key == "+" || key == "=" {
+		keyVk = 0xBB
+	} else if key == "-" {
+		keyVk = 0xBD
+	} else if len(key) == 1 {
 		char := []rune(key)[0]
 		if char >= 'a' && char <= 'z' {
 			keyVk = uint16(char - 32)

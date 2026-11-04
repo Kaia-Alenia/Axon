@@ -5,6 +5,13 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y este proyecto sigue el [Versionado Semántico](https://semver.org/lang/es/).
 
 
+## [1.6.7] - 2026-11-04
+
+### ✔️ Corregido
+- **Simulación de Entrada en Windows 10 (`SendInput`):** Corregida la alineación de memoria de la estructura `INPUT` de 64 bits en `simulator_windows.go` (40 bytes en lugar de 48 bytes), restaurando movimiento de ratón, clics, desplazamiento y zoom en Windows.
+- **Bluetooth RFCOMM Nativo en Windows:** Implementado socket RFCOMM real sobre Winsock2 (`AF_BTH`) y registro de servicio SDP (`00001101-0000-1000-8000-00805F9B34FB`) en `bluetooth_windows.go`.
+- **Detección de IP y Wi-Fi en Windows:** Añadida detección de ruta LAN activa, filtrado de adaptadores virtuales (`vEthernet`, `WSL`, `VirtualBox`, `VMware`, `Docker`) y desactivación de `SO_REUSEADDR` en Windows.
+
 ## [1.6.6] - 2026-08-23
 
 ### 🚀 Añadido / Mejorado

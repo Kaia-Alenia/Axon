@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.axon"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.6.6"
+        versionCode = 2
+        versionName = "1.6.7"
     }
 
     buildTypes {
