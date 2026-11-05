@@ -6,6 +6,12 @@ import (
 	"syscall"
 )
 
+func isConsoleMinimized() bool {
+	return false
+}
+
+func minimizeConsoleWindow() {}
+
 func setReuseAddrControl(network, address string, c syscall.RawConn) error {
 	var opErr error
 	err := c.Control(func(fd uintptr) {

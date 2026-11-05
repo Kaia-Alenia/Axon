@@ -207,6 +207,9 @@ func newNonBlockingLogger() *log.Logger {
 	w := &nonBlockingWriter{ch: make(chan []byte, 256)}
 	go func() {
 		for b := range w.ch {
+			if isConsoleMinimized() {
+				continue
+			}
 			_, _ = os.Stdout.Write(b)
 		}
 	}()
@@ -329,7 +332,7 @@ func startPingLoop(conn *websocket.Conn, done chan bool) {
 			if err != nil {
 				continue
 			}
-			_ = conn.SetWriteDeadline(time.Now().Add(3 * time.Second))
+			_ = conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 			err = conn.WriteMessage(websocket.TextMessage, data)
 			if err != nil {
 				_ = conn.Close()
@@ -494,16 +497,20 @@ func main() {
 	showVersion := flag.Bool("version", false, "Show version information")
 	runUpdate := flag.Bool("update", false, "Download and install the latest version of Axon")
 	noLogo := flag.Bool("no-logo", false, "Skip the decorative logo (use if your terminal font lacks braille support)")
+	minimized := flag.Bool("minimized", false, "Start Axon with the console window minimized")
 	flag.IntVar(&port, "port", 6969, "TCP/WebSocket port to listen on (0 for auto-allocation)")
 	flag.IntVar(&udpPort, "udp-port", 6970, "UDP port for fast input protocol (0 for auto-allocation)")
 	flag.Parse()
 	if *showVersion {
-		fmt.Println("Axon Server v1.6.8")
+		fmt.Println("Axon Server v1.6.9")
 		fmt.Println("High-speed wireless input bridge")
 		os.Exit(0)
 	}
 	if *runUpdate {
 		selfUpdate()
+	}
+	if *minimized {
+		minimizeConsoleWindow()
 	}
 	go startADBKeepalive()
 	simulator = NewSimulator()

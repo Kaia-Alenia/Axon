@@ -5,6 +5,13 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y este proyecto sigue el [Versionado Semántico](https://semver.org/lang/es/).
 
 
+## [1.6.9] - 2026-11-05
+
+### ✔️ Corregido
+- **Ejecución en Segundo Plano al Minimizar la Ventana en Windows 10:** Configurado `SetProcessInformation` para desactivar Power Throttling / EcoQoS, elevado a `ABOVE_NORMAL_PRIORITY_CLASS` y `SetThreadExecutionState` para evitar suspensión o degradación de hilos de red (WebSocket / UDP / Bluetooth) por el kernel de Windows.
+- **Protección contra Bloqueo y Crashes de Buffer en la Consola:** Detección de ventana minimizada con `IsIconic` para suspender escrituras a `os.Stdout` mientras la ventana está minimizada (evitando errores de buffer reflow y cierres de `conhost.exe`). Desactivados `ENABLE_WINDOW_INPUT` y `ENABLE_MOUSE_INPUT` en la consola.
+- **Tolerancia y Resiliencia de Conexión:** Aumentado el plazo de escritura en el bucle de ping de WebSocket de 3s a 10s para prevenir desconexiones durante transiciones de ventana. Añadido parámetro `--minimized` para iniciar directamente minimizado.
+
 ## [1.6.8] - 2026-11-04
 
 ### ✔️ Corregido

@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.9] - 2026-11-05
+
+### ✔️ Fixed
+- **Windows 10 Background Execution on Console Minimize:** Configured `SetProcessInformation` to disable Power Throttling / EcoQoS, elevated priority to `ABOVE_NORMAL_PRIORITY_CLASS`, and set `SetThreadExecutionState` to prevent Windows from suspending networking threads (WebSocket / UDP / Bluetooth).
+- **Console Buffer Lockup & Crash Prevention:** Integrated `IsIconic` minimization detection to suspend `os.Stdout` writes while minimized (preventing `conhost.exe` buffer reflow crashes and window terminations). Disabled `ENABLE_WINDOW_INPUT` and `ENABLE_MOUSE_INPUT`.
+- **Connection Resilience:** Increased WebSocket ping write deadline from 3s to 10s to absorb window transition latencies. Added `--minimized` flag to launch directly minimized.
+
 ## [1.6.8] - 2026-11-04
 
 ### ✔️ Fixed
