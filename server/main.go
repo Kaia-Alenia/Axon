@@ -196,8 +196,32 @@ var (
 	simulator         InputSimulator
 	port              int
 	udpPort           int
-	logger            = log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	logger            = newNonBlockingLogger()
 )
+
+type nonBlockingWriter struct {
+	ch chan []byte
+}
+
+func newNonBlockingLogger() *log.Logger {
+	w := &nonBlockingWriter{ch: make(chan []byte, 256)}
+	go func() {
+		for b := range w.ch {
+			_, _ = os.Stdout.Write(b)
+		}
+	}()
+	return log.New(w, "", log.Ldate|log.Ltime)
+}
+
+func (w *nonBlockingWriter) Write(p []byte) (int, error) {
+	buf := make([]byte, len(p))
+	copy(buf, p)
+	select {
+	case w.ch <- buf:
+	default:
+	}
+	return len(p), nil
+}
 
 type ClientMessage struct {
 	Type      string  `json:"type"`
@@ -266,7 +290,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	if tcpConn, ok := conn.UnderlyingConn().(*net.TCPConn); ok {
 		_ = tcpConn.SetNoDelay(true)
 		_ = tcpConn.SetKeepAlive(true)
-		_ = tcpConn.SetKeepAlivePeriod(1 * time.Second)
+		_ = tcpConn.SetKeepAlivePeriod(5 * time.Second)
 		_ = tcpConn.SetReadBuffer(65536)
 		_ = tcpConn.SetWriteBuffer(65536)
 	}
@@ -292,7 +316,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	handleMessages(conn)
 }
 func startPingLoop(conn *websocket.Conn, done chan bool) {
-	ticker := time.NewTicker(500 * time.Millisecond)
+	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 	for {
 		select {
@@ -305,7 +329,7 @@ func startPingLoop(conn *websocket.Conn, done chan bool) {
 			if err != nil {
 				continue
 			}
-			_ = conn.SetWriteDeadline(time.Now().Add(1 * time.Second))
+			_ = conn.SetWriteDeadline(time.Now().Add(3 * time.Second))
 			err = conn.WriteMessage(websocket.TextMessage, data)
 			if err != nil {
 				_ = conn.Close()
@@ -328,18 +352,19 @@ func handleMessages(conn *websocket.Conn) {
 			continue
 		}
 		if msg.Type == "pong" {
-			rtt := time.Now().UnixMilli() - msg.Timestamp
-			logger.Printf("[LATENCY] RTT Latency: %d ms\n", rtt)
 			continue
 		}
 		switch msg.Type {
 		case "move":
 			simulator.MoveMouse(msg.Dx, msg.Dy)
 		case "click":
+			logger.Printf("[MOUSE] Click: %s\n", msg.Button)
 			simulator.Click(msg.Button)
 		case "mousedown":
+			logger.Printf("[MOUSE] MouseDown: %s\n", msg.Button)
 			simulator.MouseDown(msg.Button)
 		case "mouseup":
+			logger.Printf("[MOUSE] MouseUp: %s\n", msg.Button)
 			simulator.MouseUp(msg.Button)
 		case "scroll":
 			dir := "down"
@@ -473,7 +498,7 @@ func main() {
 	flag.IntVar(&udpPort, "udp-port", 6970, "UDP port for fast input protocol (0 for auto-allocation)")
 	flag.Parse()
 	if *showVersion {
-		fmt.Println("Axon Server v1.6.7")
+		fmt.Println("Axon Server v1.6.8")
 		fmt.Println("High-speed wireless input bridge")
 		os.Exit(0)
 	}

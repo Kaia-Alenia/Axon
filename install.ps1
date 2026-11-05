@@ -44,7 +44,7 @@ Try {
 Write-Host "[SUCCESS] Downloaded successfully" -ForegroundColor Green
 Write-Host "[INSTALL] Installing to: $InstallPath" -ForegroundColor Cyan
 
-Get-Process -Name "axon" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Get-Process -Name "axon*" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 
 if (Test-Path -Path $InstallDir) {
     Remove-Item -Path "$InstallDir\*" -Force -ErrorAction SilentlyContinue

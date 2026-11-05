@@ -205,10 +205,13 @@ func processBluetoothData(data []byte) {
 	case "move":
 		simulator.MoveMouse(msg.Dx, msg.Dy)
 	case "click":
+		logger.Printf("[BT MOUSE] Click: %s\n", msg.Button)
 		simulator.Click(msg.Button)
 	case "mousedown":
+		logger.Printf("[BT MOUSE] MouseDown: %s\n", msg.Button)
 		simulator.MouseDown(msg.Button)
 	case "mouseup":
+		logger.Printf("[BT MOUSE] MouseUp: %s\n", msg.Button)
 		simulator.MouseUp(msg.Button)
 	case "scroll":
 		dir := "down"

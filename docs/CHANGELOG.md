@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.8] - 2026-11-04
+
+### ✔️ Fixed
+- **Windows 10 Console QuickEdit Freeze & Non-Blocking Logger:** Disabled `ENABLE_QUICK_EDIT_MODE` on `windows.Stdin` and implemented a non-blocking console logger so clicking the Windows terminal window or console I/O never pauses the WebSocket reader loop (`click`, `mousedown`, `mouseup`, `type`, `key`).
+- **Windows 10 Exact Binary Layout for `SendInput`:** Unified mouse and keyboard `INPUT` structures into a strict 40-byte binary layout (`rawInput [40]byte`) and batched keyboard keydown/keyup events atomically.
+
 ## [1.6.7] - 2026-11-04
 
 ### ✔️ Fixed

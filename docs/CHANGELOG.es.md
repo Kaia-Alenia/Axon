@@ -5,6 +5,12 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y este proyecto sigue el [Versionado Semántico](https://semver.org/lang/es/).
 
 
+## [1.6.8] - 2026-11-04
+
+### ✔️ Corregido
+- **Bloqueo por Modo de Edición Rápida (QuickEdit) en Consola de Windows 10 y Logger No Bloqueante:** Desactivado `ENABLE_QUICK_EDIT_MODE` en `windows.Stdin` e implementado un logger de consola asíncrono para que hacer clic en la terminal de Windows nunca congele el bucle WebSocket de clics y teclado.
+- **Layout Binario Exacto de 40 Bytes para `SendInput` en Windows 10:** Unificada la estructura `INPUT` de ratón y teclado en un arreglo binario exacto de 40 bytes (`rawInput [40]byte`) y envío atómico de eventos de teclado y clics.
+
 ## [1.6.7] - 2026-11-04
 
 ### ✔️ Corregido

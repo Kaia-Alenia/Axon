@@ -3,6 +3,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"strings"
 	"sync"
 	"syscall"
@@ -10,30 +11,7 @@ import (
 	"unsafe"
 )
 
-type MouseInput struct {
-	Dx          int32
-	Dy          int32
-	MouseData   uint32
-	DwFlags     uint32
-	Time        uint32
-	DwExtraInfo uintptr
-}
-type KeyboardInput struct {
-	WVk         uint16
-	WScan       uint16
-	DwFlags     uint32
-	Time        uint32
-	DwExtraInfo uintptr
-}
-type InputUnion struct {
-	Type uint32
-	Mi   MouseInput
-}
-type InputKeyboardStruct struct {
-	Type uint32
-	Ki   KeyboardInput
-	Pad  [8]byte
-}
+type rawInput [40]byte
 
 var (
 	user32        = syscall.NewLazyDLL("user32.dll")
@@ -49,22 +27,36 @@ type WindowsSimulator struct {
 func initSimulator() InputSimulator {
 	return &WindowsSimulator{}
 }
+func makeMouseInput(dwFlags uint32, dx, dy int32, mouseData uint32) rawInput {
+	var in rawInput
+	binary.LittleEndian.PutUint32(in[0:4], 0)
+	binary.LittleEndian.PutUint32(in[8:12], uint32(dx))
+	binary.LittleEndian.PutUint32(in[12:16], uint32(dy))
+	binary.LittleEndian.PutUint32(in[16:20], mouseData)
+	binary.LittleEndian.PutUint32(in[20:24], dwFlags)
+	return in
+}
+func makeKeyboardInput(dwFlags uint32, wVk, wScan uint16) rawInput {
+	var in rawInput
+	binary.LittleEndian.PutUint32(in[0:4], 1)
+	binary.LittleEndian.PutUint16(in[8:10], wVk)
+	binary.LittleEndian.PutUint16(in[10:12], wScan)
+	binary.LittleEndian.PutUint32(in[12:16], dwFlags)
+	return in
+}
 func (s *WindowsSimulator) sendMouseInput(dwFlags uint32, dx, dy int32, mouseData uint32) {
-	var input InputUnion
-	input.Type = 0
-	input.Mi.DwFlags = dwFlags
-	input.Mi.Dx = dx
-	input.Mi.Dy = dy
-	input.Mi.MouseData = mouseData
-	procSendInput.Call(1, uintptr(unsafe.Pointer(&input)), uintptr(unsafe.Sizeof(input)))
+	in := makeMouseInput(dwFlags, dx, dy, mouseData)
+	procSendInput.Call(1, uintptr(unsafe.Pointer(&in[0])), 40)
 }
 func (s *WindowsSimulator) sendKeyboardInput(dwFlags uint32, wVk, wScan uint16) {
-	var input InputKeyboardStruct
-	input.Type = 1
-	input.Ki.DwFlags = dwFlags
-	input.Ki.WVk = wVk
-	input.Ki.WScan = wScan
-	procSendInput.Call(1, uintptr(unsafe.Pointer(&input)), uintptr(unsafe.Sizeof(input)))
+	in := makeKeyboardInput(dwFlags, wVk, wScan)
+	procSendInput.Call(1, uintptr(unsafe.Pointer(&in[0])), 40)
+}
+func (s *WindowsSimulator) sendInputs(inputs []rawInput) {
+	if len(inputs) == 0 {
+		return
+	}
+	procSendInput.Call(uintptr(len(inputs)), uintptr(unsafe.Pointer(&inputs[0])), 40)
 }
 func (s *WindowsSimulator) MoveMouse(dx, dy float64) {
 	s.mu.Lock()
@@ -82,9 +74,11 @@ func (s *WindowsSimulator) MoveMouse(dx, dy float64) {
 	s.sendMouseInput(0x0001, ix, iy, 0)
 }
 func (s *WindowsSimulator) Click(button string) {
-	s.MouseDown(button)
-	time.Sleep(10 * time.Millisecond)
-	s.MouseUp(button)
+	go func() {
+		s.MouseDown(button)
+		time.Sleep(12 * time.Millisecond)
+		s.MouseUp(button)
+	}()
 }
 func (s *WindowsSimulator) MouseDown(button string) {
 	if button == "right" {
@@ -113,8 +107,11 @@ func (s *WindowsSimulator) Scroll(direction string) {
 }
 func (s *WindowsSimulator) Type(text string) {
 	for _, r := range text {
-		s.sendKeyboardInput(0x0004, 0, uint16(r))
-		s.sendKeyboardInput(0x0004|0x0002, 0, uint16(r))
+		inputs := []rawInput{
+			makeKeyboardInput(0x0004, 0, uint16(r)),
+			makeKeyboardInput(0x0004|0x0002, 0, uint16(r)),
+		}
+		s.sendInputs(inputs)
 	}
 }
 func (s *WindowsSimulator) Key(key string) {
@@ -179,8 +176,11 @@ func (s *WindowsSimulator) Key(key string) {
 	default:
 		return
 	}
-	s.sendKeyboardInput(0, vk, 0)
-	s.sendKeyboardInput(0x0002, vk, 0)
+	inputs := []rawInput{
+		makeKeyboardInput(0, vk, 0),
+		makeKeyboardInput(0x0002, vk, 0),
+	}
+	s.sendInputs(inputs)
 }
 func (s *WindowsSimulator) KeyCombo(modifier, key string) {
 	var modVk uint16
@@ -211,9 +211,12 @@ func (s *WindowsSimulator) KeyCombo(modifier, key string) {
 	} else {
 		return
 	}
-	s.sendKeyboardInput(0, modVk, 0)
-	s.sendKeyboardInput(0, keyVk, 0)
-	s.sendKeyboardInput(0x0002, keyVk, 0)
-	s.sendKeyboardInput(0x0002, modVk, 0)
+	inputs := []rawInput{
+		makeKeyboardInput(0, modVk, 0),
+		makeKeyboardInput(0, keyVk, 0),
+		makeKeyboardInput(0x0002, keyVk, 0),
+		makeKeyboardInput(0x0002, modVk, 0),
+	}
+	s.sendInputs(inputs)
 }
 func (s *WindowsSimulator) Close() {}
