@@ -49,6 +49,28 @@ import androidx.compose.ui.unit.sp
 import com.example.axon.network.InputClient
 import com.example.axon.R
 private data class SpecialKey(val label: String, val key: String)
+private val functionKeyRow = listOf(
+    SpecialKey("F1", "F1"),
+    SpecialKey("F2", "F2"),
+    SpecialKey("F3", "F3"),
+    SpecialKey("F4", "F4"),
+    SpecialKey("F5", "F5"),
+    SpecialKey("F6", "F6"),
+    SpecialKey("F7", "F7"),
+    SpecialKey("F8", "F8"),
+    SpecialKey("F9", "F9"),
+    SpecialKey("F10", "F10"),
+    SpecialKey("F11", "F11"),
+    SpecialKey("F12", "F12"),
+)
+private val mediaKeyRow = listOf(
+    SpecialKey("🔉 Vol-", "volumedown"),
+    SpecialKey("🔊 Vol+", "volumeup"),
+    SpecialKey("🔇 Mute", "volumemute"),
+    SpecialKey("⏮ 上一个 (抖音)", "Up"),
+    SpecialKey("⏭ 下一个 (抖音)", "Down"),
+    SpecialKey("⏯ 播放/暂停", "space"),
+)
 private val specialKeyRow = listOf(
     SpecialKey("ESC", "Escape"),
     SpecialKey("TAB", "Tab"),
@@ -226,7 +248,69 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
                 }
             }
         }
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            mediaKeyRow.forEach { mk ->
+                val isDouyin = mk.key == "Up" || mk.key == "Down"
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(
+                            if (isDouyin) RedAccent.copy(alpha = 0.12f)
+                            else Color.White.copy(alpha = 0.05f)
+                        )
+                        .border(
+                            1.dp,
+                            if (isDouyin) RedAccent.copy(alpha = 0.35f)
+                            else BorderColor,
+                            RoundedCornerShape(10.dp)
+                        )
+                        .clickable { sendKey(mk.key) }
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        mk.label,
+                        color = if (isDouyin) Color(0xFFFCA5A5) else TextPrimary,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            functionKeyRow.forEach { fk ->
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(BlueAccent.copy(alpha = 0.08f))
+                        .border(1.dp, BlueAccent.copy(alpha = 0.25f), RoundedCornerShape(10.dp))
+                        .clickable { sendKey(fk.key) }
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        fk.label,
+                        color = BlueAccent,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(6.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth()

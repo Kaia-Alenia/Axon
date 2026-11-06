@@ -106,6 +106,51 @@ body {
     text-orientation: mixed;
     pointer-events: none;
 }
+.quick-media-bar {
+    display: flex;
+    gap: 8px;
+    height: 44px;
+    align-items: center;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+.quick-media-bar::-webkit-scrollbar {
+    display: none;
+}
+.quick-btn {
+    flex: 1;
+    min-width: 48px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    padding: 0 10px;
+    transition: all 0.15s ease;
+}
+.quick-btn:active {
+    background: rgba(157, 78, 221, 0.35);
+    border-color: #bd93f9;
+    transform: scale(0.96);
+}
+.douyin-btn {
+    flex: 1.3;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+}
+.douyin-btn:active {
+    background: rgba(239, 68, 68, 0.35);
+    border-color: #f87171;
+}
 .mouse-buttons {
     display: flex;
     gap: 15px;
@@ -132,13 +177,54 @@ body {
     transform: translateY(2px);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
-.app-footer {
+.fn-container {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    transition: max-height 0.25s ease, opacity 0.25s ease;
+    max-height: 50px;
+    opacity: 1;
+}
+.fn-container.hidden {
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+    margin: 0;
+}
+.fn-container::-webkit-scrollbar {
+    display: none;
+}
+.fn-scroll {
+    display: flex;
+    gap: 6px;
+}
+.fn-btn {
+    min-width: 44px;
+    height: 38px;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #93c5fd;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
     display: flex;
     justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+}
+.fn-btn:active {
+    background: rgba(59, 130, 246, 0.35);
+    border-color: #60a5fa;
+    transform: scale(0.95);
+}
+.app-footer {
+    display: flex;
+    gap: 10px;
     padding-bottom: 10px;
 }
 .action-btn {
-    width: 100%;
+    flex: 1;
     padding: 14px;
     background: rgba(157, 78, 221, 0.15);
     border: 1px solid rgba(157, 78, 221, 0.3);
@@ -153,4 +239,15 @@ body {
 .action-btn:active {
     background: rgba(157, 78, 221, 0.3);
     transform: scale(0.98);
+}
+.fn-toggle-btn {
+    flex: 0.45;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #cbd5e1;
+}
+.fn-toggle-btn.active {
+    background: rgba(59, 130, 246, 0.25);
+    border-color: rgba(59, 130, 246, 0.5);
+    color: #93c5fd;
 }

@@ -7,6 +7,8 @@
     let btnRight = document.getElementById("btn-right");
     let btnKeyboard = document.getElementById("btn-keyboard");
     let hiddenInput = document.getElementById("hidden-input");
+    let btnFnToggle = document.getElementById("btn-fn-toggle");
+    let fnContainer = document.getElementById("fn-container");
     let lastX = 0;
     let lastY = 0;
     let isMoving = false;
@@ -16,6 +18,11 @@
     let sensitivity = 1.8;
     let lastScrollY = 0;
     let isScrolling = false;
+    let twoFingerStartY = 0;
+    let lastTwoFingerY = 0;
+    let lastTwoFingerDist = 0;
+    let twoFingerScrollAcc = 0;
+    let isTwoFingerGesture = false;
     const translations = {
         en: {
             connected: "Connected",
@@ -24,7 +31,9 @@
             right: "Right",
             keyboard: "Keyboard",
             touchpad: "TOUCHPAD",
-            scroll: "SCROLL"
+            scroll: "SCROLL",
+            prevVideo: "Prev",
+            nextVideo: "Next"
         },
         es: {
             connected: "Conectado",
@@ -33,10 +42,29 @@
             right: "Derecho",
             keyboard: "Teclado",
             touchpad: "TOUCHPAD",
-            scroll: "DESPLAZAR"
+            scroll: "DESPLAZAR",
+            prevVideo: "Anterior",
+            nextVideo: "Siguiente"
+        },
+        zh: {
+            connected: "已连接",
+            disconnected: "已断开",
+            left: "左键",
+            right: "右键",
+            keyboard: "键盘",
+            touchpad: "触控板",
+            scroll: "滚动",
+            prevVideo: "上一个",
+            nextVideo: "下一个"
         }
     };
-    const userLang = (navigator.language || navigator.userLanguage || "en").startsWith("es") ? "es" : "en";
+    const rawLang = navigator.language || navigator.userLanguage || "en";
+    let userLang = "en";
+    if (rawLang.startsWith("zh")) {
+        userLang = "zh";
+    } else if (rawLang.startsWith("es")) {
+        userLang = "es";
+    }
     const t = translations[userLang];
     document.documentElement.lang = userLang;
     function updateStatus(isConnected) {
@@ -56,6 +84,10 @@
         if (touchpadLabel) touchpadLabel.textContent = t.touchpad;
         const scrollpadLabel = document.querySelector(".scrollpad-label");
         if (scrollpadLabel) scrollpadLabel.textContent = t.scroll;
+        const prevText = document.querySelector("#btn-prev-video .btn-text");
+        if (prevText) prevText.textContent = t.prevVideo;
+        const nextText = document.querySelector("#btn-next-video .btn-text");
+        if (nextText) nextText.textContent = t.nextVideo;
         updateStatus(false);
     }
     function connect() {
@@ -89,9 +121,51 @@
             touchStartY = touch.clientY;
             touchStartTime = Date.now();
             isMoving = true;
+            isTwoFingerGesture = false;
+        } else if (e.touches.length === 2) {
+            e.preventDefault();
+            let t1 = e.touches[0];
+            let t2 = e.touches[1];
+            isMoving = false;
+            isTwoFingerGesture = true;
+            lastTwoFingerY = (t1.clientY + t2.clientY) / 2;
+            twoFingerStartY = lastTwoFingerY;
+            lastTwoFingerDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+            twoFingerScrollAcc = 0;
         }
-    }, { passive: true });
+    }, { passive: false });
     touchpad.addEventListener("touchmove", function(e) {
+        if (isTwoFingerGesture && e.touches.length === 2) {
+            e.preventDefault();
+            let t1 = e.touches[0];
+            let t2 = e.touches[1];
+            let currentY = (t1.clientY + t2.clientY) / 2;
+            let currentDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+            let dy = currentY - lastTwoFingerY;
+            let dDist = currentDist - lastTwoFingerDist;
+            if (Math.abs(dy) > Math.abs(dDist) * 1.1 || Math.abs(dDist) < 10) {
+                twoFingerScrollAcc += dy;
+                if (Math.abs(twoFingerScrollAcc) > 12) {
+                    sendMessage({
+                        type: "scroll",
+                        dy: twoFingerScrollAcc > 0 ? 1 : -1
+                    });
+                    twoFingerScrollAcc = 0;
+                }
+                lastTwoFingerY = currentY;
+                lastTwoFingerDist = currentDist;
+            } else if (Math.abs(dDist) > 20) {
+                sendMessage({
+                    type: "keycombo",
+                    modifier: "ctrl",
+                    key: dDist > 0 ? "+" : "-"
+                });
+                lastTwoFingerDist = currentDist;
+                lastTwoFingerY = currentY;
+                twoFingerScrollAcc = 0;
+            }
+            return;
+        }
         if (isMoving && e.touches.length === 1) {
             let touch = e.touches[0];
             let dx = (touch.clientX - lastX) * sensitivity;
@@ -104,8 +178,15 @@
             lastX = touch.clientX;
             lastY = touch.clientY;
         }
-    }, { passive: true });
+    }, { passive: false });
     touchpad.addEventListener("touchend", function(e) {
+        if (isTwoFingerGesture) {
+            if (e.touches.length < 2) {
+                isTwoFingerGesture = false;
+                twoFingerScrollAcc = 0;
+            }
+            return;
+        }
         isMoving = false;
         let touchDuration = Date.now() - touchStartTime;
         if (e.changedTouches.length === 1 && touchDuration < 200) {
@@ -157,6 +238,24 @@
         e.preventDefault();
         sendMessage({ type: "mouseup", button: "right" });
     });
+    document.querySelectorAll(".quick-btn, .fn-btn").forEach(function(btn) {
+        btn.addEventListener("click", function(e) {
+            e.preventDefault();
+            let key = btn.getAttribute("data-key");
+            if (key) {
+                sendMessage({
+                    type: "key",
+                    key: key
+                });
+            }
+        });
+    });
+    if (btnFnToggle && fnContainer) {
+        btnFnToggle.addEventListener("click", function() {
+            fnContainer.classList.toggle("hidden");
+            btnFnToggle.classList.toggle("active");
+        });
+    }
     btnKeyboard.addEventListener("click", function() {
         hiddenInput.focus();
     });

@@ -9,6 +9,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -68,6 +71,15 @@ private val TextPrimary  = Color(0xFFF9FAFB)
 private val TextSecond   = Color(0xFF94A3B8)
 private val BorderColor  = Color(0xFF334155)
 private val RedAccent    = Color(0xFFEF4444)
+private data class MediaAction(val label: String, val key: String, val isHighlight: Boolean = false)
+private val quickMediaActions = listOf(
+    MediaAction("🔉 -", "volumedown"),
+    MediaAction("🔊 +", "volumeup"),
+    MediaAction("🔇", "volumemute"),
+    MediaAction("⏮ 上一个", "Up", true),
+    MediaAction("⏭ 下一个", "Down", true),
+    MediaAction("⏯", "space"),
+)
 @Composable
 fun TouchpadScreen(
     client: InputClient,
@@ -191,6 +203,8 @@ fun TouchpadScreen(
                                 var isDrag = false
                                 var totalDist = 0f
                                 var lastZoomDist: Float? = null
+                                var lastTwoFingerCenterY: Float? = null
+                                var twoFingerScrollAcc = 0f
                                 while (true) {
                                     val event = awaitPointerEvent()
                                     val anyPressed = event.changes.any { it.pressed }
@@ -223,23 +237,45 @@ fun TouchpadScreen(
                                     if (pressedChanges.size == 2) {
                                         val p1 = pressedChanges[0].position
                                         val p2 = pressedChanges[1].position
+                                        val currentCenterY = (p1.y + p2.y) / 2f
                                         val dist = kotlin.math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))
-                                        if (lastZoomDist != null) {
-                                            val delta = dist - lastZoomDist!!
-                                            if (abs(delta) > 15f) { 
-                                                if (delta > 0) {
+                                        if (lastZoomDist != null && lastTwoFingerCenterY != null) {
+                                            val deltaDist = dist - lastZoomDist!!
+                                            val deltaY = currentCenterY - lastTwoFingerCenterY!!
+                                            if (abs(deltaY) > abs(deltaDist) * 1.1f || abs(deltaDist) < 10f) {
+                                                twoFingerScrollAcc += deltaY
+                                                if (abs(twoFingerScrollAcc) > 16f) {
+                                                    val now = System.currentTimeMillis()
+                                                    val last = lastScrollTime.get()
+                                                    if (now - last >= scrollThrottleMs) {
+                                                        if (lastScrollTime.compareAndSet(last, now)) {
+                                                            sendScroll(if (twoFingerScrollAcc > 0) 1.0 else -1.0)
+                                                            twoFingerScrollAcc = 0f
+                                                        }
+                                                    }
+                                                }
+                                                lastTwoFingerCenterY = currentCenterY
+                                                lastZoomDist = dist
+                                            } else if (abs(deltaDist) > 18f) {
+                                                if (deltaDist > 0) {
                                                     client.sendKeyCombo("ctrl", "+")
                                                 } else {
                                                     client.sendKeyCombo("ctrl", "-")
                                                 }
                                                 lastZoomDist = dist
+                                                lastTwoFingerCenterY = currentCenterY
+                                                twoFingerScrollAcc = 0f
                                             }
                                         } else {
                                             lastZoomDist = dist
+                                            lastTwoFingerCenterY = currentCenterY
+                                            twoFingerScrollAcc = 0f
                                         }
                                         event.changes.forEach { it.consume() }
                                     } else {
                                         lastZoomDist = null
+                                        lastTwoFingerCenterY = null
+                                        twoFingerScrollAcc = 0f
                                     }
                                     val change = event.changes.firstOrNull { it.id == dragPointerId && it.pressed }
                                         ?: event.changes.firstOrNull { it.pressed }
@@ -370,7 +406,41 @@ fun TouchpadScreen(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                quickMediaActions.forEach { action ->
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                if (action.isHighlight) RedAccent.copy(alpha = 0.12f)
+                                else Color.White.copy(alpha = 0.05f)
+                            )
+                            .border(
+                                1.dp,
+                                if (action.isHighlight) RedAccent.copy(alpha = 0.35f)
+                                else BorderColor,
+                                RoundedCornerShape(12.dp)
+                            )
+                            .clickable { client.sendKey(action.key) }
+                            .padding(horizontal = 14.dp, vertical = 9.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = action.label,
+                            color = if (action.isHighlight) Color(0xFFFCA5A5) else TextPrimary,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(10.dp))
             Row(modifier = Modifier.fillMaxWidth().height(72.dp)) {
                 Box(
                     modifier = Modifier

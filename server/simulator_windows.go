@@ -173,6 +173,10 @@ func (s *WindowsSimulator) Key(key string) {
 		vk = 0xAF
 	case "volumedown":
 		vk = 0xAE
+	case "volumemute", "mute":
+		vk = 0xAD
+	case "playpause", "mediaplaypause":
+		vk = 0xB3
 	default:
 		return
 	}

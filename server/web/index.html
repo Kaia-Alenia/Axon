@@ -23,12 +23,39 @@
             </div>
         </main>
 
+        <div class="quick-media-bar">
+            <button class="quick-btn" data-key="volumedown" id="btn-voldown" title="Vol-">🔉 -</button>
+            <button class="quick-btn" data-key="volumeup" id="btn-volup" title="Vol+">🔊 +</button>
+            <button class="quick-btn" data-key="volumemute" id="btn-mute" title="Mute">🔇</button>
+            <button class="quick-btn douyin-btn" data-key="Up" id="btn-prev-video" title="Previous Video">⏮ <span class="btn-text">上一个</span></button>
+            <button class="quick-btn douyin-btn" data-key="Down" id="btn-next-video" title="Next Video">⏭ <span class="btn-text">下一个</span></button>
+            <button class="quick-btn" data-key="space" id="btn-playpause" title="Play/Pause">⏯</button>
+        </div>
+
         <div class="mouse-buttons">
             <button id="btn-left" class="mouse-btn">Left</button>
             <button id="btn-right" class="mouse-btn">Right</button>
         </div>
 
+        <div id="fn-container" class="fn-container hidden">
+            <div class="fn-scroll">
+                <button class="fn-btn" data-key="F1">F1</button>
+                <button class="fn-btn" data-key="F2">F2</button>
+                <button class="fn-btn" data-key="F3">F3</button>
+                <button class="fn-btn" data-key="F4">F4</button>
+                <button class="fn-btn" data-key="F5">F5</button>
+                <button class="fn-btn" data-key="F6">F6</button>
+                <button class="fn-btn" data-key="F7">F7</button>
+                <button class="fn-btn" data-key="F8">F8</button>
+                <button class="fn-btn" data-key="F9">F9</button>
+                <button class="fn-btn" data-key="F10">F10</button>
+                <button class="fn-btn" data-key="F11">F11</button>
+                <button class="fn-btn" data-key="F12">F12</button>
+            </div>
+        </div>
+
         <footer class="app-footer">
+            <button id="btn-fn-toggle" class="action-btn fn-toggle-btn">F1-F12</button>
             <button id="btn-keyboard" class="action-btn">Keyboard</button>
             <input type="text" id="hidden-input" style="opacity: 0; position: absolute; pointer-events: none; width: 0; height: 0;">
         </footer>

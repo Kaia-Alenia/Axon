@@ -211,6 +211,10 @@ func (s *LinuxSimulator) handleKey(cmdStr string) {
 				xKey = "XF86AudioRaiseVolume"
 			case "volumedown":
 				xKey = "XF86AudioLowerVolume"
+			case "volumemute", "mute":
+				xKey = "XF86AudioMute"
+			case "playpause", "mediaplaypause":
+				xKey = "XF86AudioPlay"
 			}
 			_ = exec.Command("xdotool", "key", xKey).Run()
 		}
