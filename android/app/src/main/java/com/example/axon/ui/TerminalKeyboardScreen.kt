@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import com.example.axon.network.InputClient
 import com.example.axon.R
 private data class SpecialKey(val label: String, val key: String)
+private data class LocalizedSpecialKey(val labelResId: Int, val key: String)
 private val functionKeyRow = listOf(
     SpecialKey("F1", "F1"),
     SpecialKey("F2", "F2"),
@@ -64,12 +65,12 @@ private val functionKeyRow = listOf(
     SpecialKey("F12", "F12"),
 )
 private val mediaKeyRow = listOf(
-    SpecialKey("🔉 Vol-", "volumedown"),
-    SpecialKey("🔊 Vol+", "volumeup"),
-    SpecialKey("🔇 Mute", "volumemute"),
-    SpecialKey("⏮ 上一个 (抖音)", "Up"),
-    SpecialKey("⏭ 下一个 (抖音)", "Down"),
-    SpecialKey("⏯ 播放/暂停", "space"),
+    LocalizedSpecialKey(R.string.media_vol_down, "volumedown"),
+    LocalizedSpecialKey(R.string.media_vol_up, "volumeup"),
+    LocalizedSpecialKey(R.string.media_mute, "volumemute"),
+    LocalizedSpecialKey(R.string.media_prev, "Up"),
+    LocalizedSpecialKey(R.string.media_next, "Down"),
+    LocalizedSpecialKey(R.string.media_play_pause, "space"),
 )
 private val specialKeyRow = listOf(
     SpecialKey("ESC", "Escape"),
@@ -275,7 +276,7 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        mk.label,
+                        stringResource(id = mk.labelResId),
                         color = if (isDouyin) Color(0xFFFCA5A5) else TextPrimary,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold

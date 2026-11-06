@@ -63,4 +63,10 @@
     <string name="button_guide">Guía</string>
     <string name="button_license">Licencia</string>
     <string name="close_action">Cerrar</string>
+    <string name="media_vol_down">🔉 Vol-</string>
+    <string name="media_vol_up">🔊 Vol+</string>
+    <string name="media_mute">🔇 Silenciar</string>
+    <string name="media_prev">⏮ Anterior</string>
+    <string name="media_next">⏭ Siguiente</string>
+    <string name="media_play_pause">⏯ Repr./Pausa</string>
 </resources>

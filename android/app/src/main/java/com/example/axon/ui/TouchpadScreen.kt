@@ -71,14 +71,14 @@ private val TextPrimary  = Color(0xFFF9FAFB)
 private val TextSecond   = Color(0xFF94A3B8)
 private val BorderColor  = Color(0xFF334155)
 private val RedAccent    = Color(0xFFEF4444)
-private data class MediaAction(val label: String, val key: String, val isHighlight: Boolean = false)
+private data class MediaAction(val labelResId: Int, val key: String, val isHighlight: Boolean = false)
 private val quickMediaActions = listOf(
-    MediaAction("🔉 -", "volumedown"),
-    MediaAction("🔊 +", "volumeup"),
-    MediaAction("🔇", "volumemute"),
-    MediaAction("⏮ 上一个", "Up", true),
-    MediaAction("⏭ 下一个", "Down", true),
-    MediaAction("⏯", "space"),
+    MediaAction(R.string.media_vol_down, "volumedown"),
+    MediaAction(R.string.media_vol_up, "volumeup"),
+    MediaAction(R.string.media_mute, "volumemute"),
+    MediaAction(R.string.media_prev, "Up", true),
+    MediaAction(R.string.media_next, "Down", true),
+    MediaAction(R.string.media_play_pause, "space"),
 )
 @Composable
 fun TouchpadScreen(
@@ -432,7 +432,7 @@ fun TouchpadScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = action.label,
+                            text = stringResource(id = action.labelResId),
                             color = if (action.isHighlight) Color(0xFFFCA5A5) else TextPrimary,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold
