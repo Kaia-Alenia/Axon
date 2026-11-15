@@ -193,31 +193,43 @@ func (s *LinuxSimulator) handleKey(cmdStr string) {
 		if len(parts) == 2 {
 			s.KeyCombo(parts[0], parts[1])
 		}
-	} else {
-		if s.keyboard != nil {
-			if code, ok := keyMap[key]; ok {
-				_ = s.keyboard.KeyPress(code)
-			} else if len(key) == 1 {
-				s.typeChar(rune(key[0]))
-			}
-		} else {
-			xKey := key
-			switch key {
-			case "Prior":
-				xKey = "Page_Up"
-			case "Next":
-				xKey = "Page_Down"
-			case "volumeup":
-				xKey = "XF86AudioRaiseVolume"
-			case "volumedown":
-				xKey = "XF86AudioLowerVolume"
-			case "volumemute", "mute":
-				xKey = "XF86AudioMute"
-			case "playpause", "mediaplaypause":
-				xKey = "XF86AudioPlay"
-			}
-			_ = exec.Command("xdotool", "key", xKey).Run()
+		return
+	}
+	// Prefer the low-latency uinput keyboard when the key is known there.
+	if s.keyboard != nil {
+		if code, ok := keyMap[key]; ok {
+			_ = s.keyboard.KeyPress(code)
+			return
 		}
+		if len(key) == 1 {
+			s.typeChar(rune(key[0]))
+			return
+		}
+	}
+	// Fallback: keys the uinput map does not cover (F1–F12 except F5,
+	// volumemute, playpause, …) used to be silently dropped whenever the
+	// uinput keyboard was available (issues #9, #10). Send them through
+	// xdotool instead, which knows the XF86 / function-key names.
+	_ = exec.Command("xdotool", "key", linuxXKey(key)).Run()
+}
+
+// linuxXKey maps an Axon key name to the xdotool key name.
+func linuxXKey(key string) string {
+	switch key {
+	case "Prior":
+		return "Page_Up"
+	case "Next":
+		return "Page_Down"
+	case "volumeup":
+		return "XF86AudioRaiseVolume"
+	case "volumedown":
+		return "XF86AudioLowerVolume"
+	case "volumemute", "mute":
+		return "XF86AudioMute"
+	case "playpause", "mediaplaypause":
+		return "XF86AudioPlay"
+	default:
+		return key
 	}
 }
 

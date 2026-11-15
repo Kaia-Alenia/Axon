@@ -22,6 +22,36 @@ type WindowsSimulator struct {
 	mu   sync.Mutex
 	remX float64
 	remY float64
+	// sendInputWarned guards a one-time warning when Windows refuses
+	// synthetic input (see checkSendInput).
+	sendInputWarned bool
+}
+
+// checkSendInput reports whether SendInput actually injected the events.
+// SendInput returns the number of events it inserted; 0 means Windows
+// dropped them. The usual cause is UIPI (User Interface Privilege
+// Isolation): the foreground application runs elevated (as Administrator)
+// while Axon does not, so Windows silently discards input sent to it.
+// That matches issue #12, where the mouse stops working the instant an
+// elevated helper app such as FastGithub is clicked, and recovers as soon
+// as it goes to the background. Mouse movement itself does not depend on
+// the foreground window — SendInput is session-wide — so there is nothing
+// to "re-focus"; the fix for the user is to run axon.exe as
+// Administrator, which this warning tells them.
+func (s *WindowsSimulator) checkSendInput(injected uintptr, want int) {
+	if injected >= uintptr(want) {
+		return
+	}
+	s.mu.Lock()
+	warned := s.sendInputWarned
+	s.sendInputWarned = true
+	s.mu.Unlock()
+	if warned {
+		return
+	}
+	logger.Println("[INPUT] Warning: Windows rejected synthetic input (SendInput injected 0 events).")
+	logger.Println("[INPUT] This usually happens when the foreground app runs as Administrator (e.g. FastGithub).")
+	logger.Println("[INPUT] Run axon.exe as Administrator to control elevated windows.")
 }
 
 func initSimulator() InputSimulator {
@@ -46,17 +76,20 @@ func makeKeyboardInput(dwFlags uint32, wVk, wScan uint16) rawInput {
 }
 func (s *WindowsSimulator) sendMouseInput(dwFlags uint32, dx, dy int32, mouseData uint32) {
 	in := makeMouseInput(dwFlags, dx, dy, mouseData)
-	procSendInput.Call(1, uintptr(unsafe.Pointer(&in[0])), 40)
+	injected, _, _ := procSendInput.Call(1, uintptr(unsafe.Pointer(&in[0])), 40)
+	s.checkSendInput(injected, 1)
 }
 func (s *WindowsSimulator) sendKeyboardInput(dwFlags uint32, wVk, wScan uint16) {
 	in := makeKeyboardInput(dwFlags, wVk, wScan)
-	procSendInput.Call(1, uintptr(unsafe.Pointer(&in[0])), 40)
+	injected, _, _ := procSendInput.Call(1, uintptr(unsafe.Pointer(&in[0])), 40)
+	s.checkSendInput(injected, 1)
 }
 func (s *WindowsSimulator) sendInputs(inputs []rawInput) {
 	if len(inputs) == 0 {
 		return
 	}
-	procSendInput.Call(uintptr(len(inputs)), uintptr(unsafe.Pointer(&inputs[0])), 40)
+	injected, _, _ := procSendInput.Call(uintptr(len(inputs)), uintptr(unsafe.Pointer(&inputs[0])), 40)
+	s.checkSendInput(injected, len(inputs))
 }
 func (s *WindowsSimulator) MoveMouse(dx, dy float64) {
 	s.mu.Lock()
