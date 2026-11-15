@@ -11,11 +11,32 @@ android {
         applicationId = "com.example.axon"
         minSdk = 24
         targetSdk = 36
-        versionCode = 7
-        versionName = "1.7.4"
+        versionCode = 8
+        versionName = "1.7.5"
+    }
+
+    // All debug APKs (local builds and CI) are signed with the same
+    // shared debug keystore (android/debug.keystore, the standard
+    // Android debug key: alias androiddebugkey / password android).
+    // Without this, Gradle generates a fresh ephemeral debug keystore
+    // on every CI runner, so every release APK has a different
+    // signature and Android refuses to install an update over the
+    // previous version ("package conflicts"). With the shared key,
+    // updates install cleanly. Users on an APK signed before this
+    // change must uninstall once; afterwards updates just work.
+    signingConfigs {
+        create("sharedDebug") {
+            storeFile = rootProject.file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("sharedDebug")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
