@@ -31,8 +31,8 @@ import (
 var webFS embed.FS
 
 // version is the server version. Keep in sync with the Android
-// versionName (1.6.9, versionCode 4).
-const version = "1.6.9"
+// versionName (1.7.2, versionCode 5).
+const version = "1.7.2"
 
 const githubLatestReleaseAPI = "https://api.github.com/repos/Kaia-Alenia/Axon/releases/latest"
 
