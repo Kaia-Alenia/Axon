@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.5] - 2026-11-15
+
+### ✔️ Fixed
+- **QR code too big, crash on a minimized window:** the QR was always rendered at full size and printed straight to stdout, bypassing the minimized-console guard — on Windows, writing to a minimized console corrupts its buffer and crashes the server. The server now knows the window state (minimized via IsIconic, maximized via IsZoomed on Windows): when minimized, the banner and QR are not printed at all and are shown once the window is restored; otherwise the QR is sized to the measured terminal width — full-block when it fits, compact half-block on narrower windows, and the plain URL as text when the terminal is too narrow for any readable code.
+- **Android APK updates failed with package conflicts:** CI built the debug APK with a fresh ephemeral debug keystore on every run, so every release had a different signature and Android refused to install an update over the old app. All debug APKs are now signed with one shared debug keystore committed in the repo (`android/debug.keystore`, standard Android debug key). Users on an APK signed before this change must uninstall once; afterwards updates install cleanly.
+
 ## [1.7.4] - 2026-11-15
 
 ### Changed
