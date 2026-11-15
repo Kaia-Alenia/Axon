@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.7.2] - 2026-11-15
 
 ### ✔️ Fixed
 - **Language switch back to Chinese (#11, bug):** the home-screen selector only toggled ES <-> EN, so once the user left Chinese they could never return to it. The selector now shows all three languages (EN / ES / 中文) and each is directly selectable; Chinese uses `Locale.SIMPLIFIED_CHINESE` (zh-Hans-CN) so the `values-zh` resources match reliably, and stored language tags such as `zh-CN` are normalised on load.
