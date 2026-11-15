@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - 'v*'
+  # Run the same server + Android builds on every PR so fixes are
+  # compiled and tested before merging (previously it only ran on v* tags).
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
