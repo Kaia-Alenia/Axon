@@ -31,8 +31,8 @@ import (
 var webFS embed.FS
 
 // version is the server version. Keep in sync with the Android
-// versionName (1.7.2, versionCode 5).
-const version = "1.7.2"
+// versionName (1.7.3, versionCode 6).
+const version = "1.7.3"
 
 const githubLatestReleaseAPI = "https://api.github.com/repos/Kaia-Alenia/Axon/releases/latest"
 
@@ -257,20 +257,62 @@ var (
 )
 
 type nonBlockingWriter struct {
-	ch chan []byte
+	ch       chan []byte
+	flushReq chan chan struct{}
 }
 
 func newNonBlockingLogger() *log.Logger {
-	w := &nonBlockingWriter{ch: make(chan []byte, 256)}
+	w := &nonBlockingWriter{ch: make(chan []byte, 256), flushReq: make(chan chan struct{})}
 	go func() {
-		for b := range w.ch {
-			if isConsoleMinimized() {
-				continue
+		for {
+			select {
+			case b := <-w.ch:
+				if isConsoleMinimized() {
+					continue
+				}
+				_, _ = os.Stdout.Write(b)
+			case done := <-w.flushReq:
+				// Drain everything queued behind the flush request, in
+				// order, then signal completion.
+			drain:
+				for {
+					select {
+					case b := <-w.ch:
+						if isConsoleMinimized() {
+							continue
+						}
+						_, _ = os.Stdout.Write(b)
+					default:
+						close(done)
+						break drain
+					}
+				}
 			}
-			_, _ = os.Stdout.Write(b)
 		}
 	}()
 	return log.New(w, "", log.Ldate|log.Ltime)
+}
+
+// flushLogger blocks until every log line queued so far has been
+// written to stdout. Call it before os.Exit: the background writer
+// goroutine does not run during process exit, so without a flush the
+// last lines (e.g. "Already up to date") are silently lost. This bit
+// the self-updater, which exits right after logging its result —
+// "axon --update" on an up-to-date install printed nothing at all.
+func flushLogger() {
+	if w, ok := logger.Writer().(*nonBlockingWriter); ok {
+		done := make(chan struct{})
+		w.flushReq <- done
+		<-done
+	}
+}
+
+// exitUpdate flushes pending log output and then exits with code.
+// Use it instead of os.Exit on every path out of the self-update
+// flow, so the user actually sees the result.
+func exitUpdate(code int) {
+	flushLogger()
+	os.Exit(code)
 }
 
 func (w *nonBlockingWriter) Write(p []byte) (int, error) {
@@ -1162,25 +1204,18 @@ func selfUpdate() {
 	exePath, err := os.Executable()
 	if err != nil {
 		logger.Printf("[UPDATE] Error: could not determine executable path: %v\n", err)
-		os.Exit(1)
+		exitUpdate(1)
 	}
 	exeDir := filepath.Dir(exePath)
 	tmpPath := exePath + ".new"
 	// Remove any stale download from a previous failed update.
 	_ = os.Remove(tmpPath)
 
-	// Fail fast when the install directory cannot be written (read-only
-	// directory, permission denied) instead of after a wasted download.
-	if err := checkInstallDirWritable(exeDir); err != nil {
-		logger.Printf("[UPDATE] Error: %v\n", err)
-		appendUpdateLog(exePath, fmt.Sprintf("Update failed: %v", err))
-		os.Exit(1)
-	}
-
-	// Version check: skip the download entirely when already up to date.
-	// If the API cannot be reached, fall back to the direct download as
-	// before instead of blocking the update. The API also reports the
-	// release asset size, used for the disk-space and download checks.
+	// Version check first, before any writability probe: an
+	// up-to-date install must report "Already up to date" even when
+	// it lives in a read-only directory (e.g. /usr/local/bin), where
+	// the probe below would otherwise fail first and hide the fact
+	// that no update was needed at all.
 	apiClient := &http.Client{Timeout: updateCheckTimeout}
 	latest := ""
 	expectedSize := int64(-1)
@@ -1193,12 +1228,20 @@ func selfUpdate() {
 		logger.Printf("[UPDATE] Warning: could not compare versions (latest %q): %v; downloading latest release anyway.\n", latest, cmpErr)
 	} else if cmp == 0 {
 		logger.Printf("[UPDATE] Already up to date (v%s).\n", version)
-		os.Exit(0)
+		exitUpdate(0)
 	} else if cmp < 0 {
 		logger.Printf("[UPDATE] You are running v%s, newer than the latest release (v%s); nothing to do.\n", version, latest)
-		os.Exit(0)
+		exitUpdate(0)
 	} else {
 		logger.Printf("[UPDATE] New version available: v%s (current v%s).\n", latest, version)
+	}
+
+	// Fail fast when the install directory cannot be written (read-only
+	// directory, permission denied) instead of after a wasted download.
+	if err := checkInstallDirWritable(exeDir); err != nil {
+		logger.Printf("[UPDATE] Error: %v\n", err)
+		appendUpdateLog(exePath, fmt.Sprintf("Update failed: %v", err))
+		exitUpdate(1)
 	}
 
 	// Refuse to start a download that cannot fit, instead of producing
@@ -1206,7 +1249,7 @@ func selfUpdate() {
 	if err := checkFreeDiskSpace(exeDir, requiredDownloadBytes(expectedSize, exePath)); err != nil {
 		logger.Printf("[UPDATE] Error: %v\n", err)
 		appendUpdateLog(exePath, fmt.Sprintf("Update failed: %v", err))
-		os.Exit(1)
+		exitUpdate(1)
 	}
 
 	url := "https://github.com/Kaia-Alenia/Axon/releases/latest/download/" + binaryName
@@ -1215,13 +1258,13 @@ func selfUpdate() {
 		logger.Printf("[UPDATE] Error: %v\n", err)
 		appendUpdateLog(exePath, fmt.Sprintf("Update failed: %v", err))
 		_ = os.Remove(tmpPath)
-		os.Exit(1)
+		exitUpdate(1)
 	}
 	if err := validateDownloadedBinary(tmpPath, goos); err != nil {
 		logger.Printf("[UPDATE] Error: downloaded file failed validation: %v\n", err)
 		appendUpdateLog(exePath, fmt.Sprintf("Update failed: downloaded file failed validation: %v", err))
 		_ = os.Remove(tmpPath)
-		os.Exit(1)
+		exitUpdate(1)
 	}
 	// Defence in depth: the download already checked the byte count,
 	// but re-check the file on disk before it is ever swapped in.
@@ -1229,7 +1272,7 @@ func selfUpdate() {
 		logger.Printf("[UPDATE] Error: %v\n", err)
 		appendUpdateLog(exePath, fmt.Sprintf("Update failed: %v", err))
 		_ = os.Remove(tmpPath)
-		os.Exit(1)
+		exitUpdate(1)
 	}
 	// Backup-first swap: the old binary is moved to <exe>.old before
 	// the new one takes its place, on every platform. If the swap or
@@ -1245,7 +1288,7 @@ func selfUpdate() {
 				appendUpdateLog(exePath, fmt.Sprintf("Update failed: %v; old version restored from backup", err))
 				logger.Println("[UPDATE] Old version restored from backup.")
 			}
-			os.Exit(1)
+			exitUpdate(1)
 		}
 		// The new binary is verified: only now is the backup disposable.
 		if err := os.Remove(exePath + ".old"); err != nil && !os.IsNotExist(err) {
@@ -1256,7 +1299,7 @@ func selfUpdate() {
 			logger.Printf("[UPDATE] Update applied but could not restart automatically: %v\n", err)
 			logger.Println("[UPDATE] Restart axon manually to use the new version.")
 		}
-		os.Exit(0)
+		exitUpdate(0)
 	} else {
 		appendUpdateLog(exePath, fmt.Sprintf("In-process swap failed (%v); handing the swap to a helper process.", err))
 	}
@@ -1279,10 +1322,10 @@ func selfUpdate() {
 		appendUpdateLog(exePath, fmt.Sprintf("Update failed: could not start update helper: %v", err))
 		logger.Printf("[UPDATE] New binary saved at: %s\n", tmpPath)
 		logger.Printf("[UPDATE] Manually replace the current binary with the downloaded file.\n")
-		os.Exit(1)
+		exitUpdate(1)
 	}
 	logger.Printf("[UPDATE] Update downloaded. The helper will replace the binary and restart axon once this process exits.\n")
-	os.Exit(0)
+	exitUpdate(0)
 }
 
 func main() {
@@ -1293,12 +1336,12 @@ func main() {
 	if len(os.Args) > 1 && os.Args[1] == "--apply-update" {
 		if len(os.Args) != 5 && len(os.Args) != 6 {
 			logger.Printf("[UPDATE] Error: --apply-update needs <parent-pid> <exe-path> <new-path> [expected-version]\n")
-			os.Exit(1)
+			exitUpdate(1)
 		}
 		parentPID, err := strconv.Atoi(os.Args[2])
 		if err != nil {
 			logger.Printf("[UPDATE] Error: invalid parent pid %q: %v\n", os.Args[2], err)
-			os.Exit(1)
+			exitUpdate(1)
 		}
 		expectedVersion := ""
 		if len(os.Args) == 6 {
@@ -1307,9 +1350,9 @@ func main() {
 		if err := applyUpdateExpected(parentPID, os.Args[3], os.Args[4], expectedVersion); err != nil {
 			logger.Printf("[UPDATE] Error: %v\n", err)
 			logger.Printf("[UPDATE] See update.log next to the executable for details.\n")
-			os.Exit(1)
+			exitUpdate(1)
 		}
-		os.Exit(0)
+		exitUpdate(0)
 	}
 	// Clean up the renamed-aside binary left by a previous update
 	// (see swapViaRenameAway), but only once the current binary has
@@ -1333,7 +1376,7 @@ func main() {
 	if *showVersion {
 		fmt.Printf("Axon Server v%s\n", version)
 		fmt.Println("High-speed wireless input bridge")
-		os.Exit(0)
+		exitUpdate(0)
 	}
 	if *runUpdate {
 		selfUpdate()
@@ -1348,12 +1391,12 @@ func main() {
 	ip := getLocalIP()
 	if ip == "" {
 		logger.Println("Error: Could not retrieve local IP address")
-		os.Exit(1)
+		exitUpdate(1)
 	}
 	tcpListener, actualPort, err := tryPortWithFallback(port)
 	if err != nil {
 		logger.Printf(" Error: Failed to bind to any port: %v\n", err)
-		os.Exit(1)
+		exitUpdate(1)
 	}
 	defer tcpListener.Close()
 	if actualPort != port {
@@ -1364,7 +1407,7 @@ func main() {
 	udpConn, actualUdpPort, err := tryUDPPortWithFallback(udpPort)
 	if err != nil {
 		logger.Printf(" Error: Failed to bind UDP port: %v\n", err)
-		os.Exit(1)
+		exitUpdate(1)
 	}
 	if actualUdpPort != udpPort {
 		logger.Printf("[PORT] Using dynamic UDP port: %d (requested: %d)\n", actualUdpPort, udpPort)
@@ -1416,7 +1459,7 @@ func main() {
 	subFS, err := fs.Sub(webFS, "web")
 	if err != nil {
 		logger.Println(" Error loading static web files:", err)
-		os.Exit(1)
+		exitUpdate(1)
 	}
 	http.Handle("/", http.FileServer(http.FS(subFS)))
 	http.HandleFunc("/ws", handleWebSocket)
@@ -1425,6 +1468,6 @@ func main() {
 	err = server.Serve(tcpListener)
 	if err != nil {
 		logger.Printf(" Error starting the server: %v\n", err)
-		os.Exit(1)
+		exitUpdate(1)
 	}
 }
