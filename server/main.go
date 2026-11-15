@@ -31,8 +31,8 @@ import (
 var webFS embed.FS
 
 // version is the server version. Keep in sync with the Android
-// versionName (1.7.4, versionCode 7).
-const version = "1.7.4"
+// versionName (1.7.5, versionCode 8).
+const version = "1.7.5"
 
 const githubLatestReleaseAPI = "https://api.github.com/repos/Kaia-Alenia/Axon/releases/latest"
 
@@ -1328,6 +1328,64 @@ func selfUpdate() {
 	exitUpdate(0)
 }
 
+// printStartupBanner prints the logo, address/ports and the QR code.
+// It must only run when the console window is not minimized: the
+// call site defers it through watchConsoleRestore otherwise.
+func printStartupBanner(ip string, port, udpPort int, url string, noLogo bool) {
+	lineDelay := 55 * time.Millisecond
+	printLine(colorizeRainbow("    ___  _  ______  _  __", 0.4), lineDelay)
+	printLine(colorizeRainbow("   /   || |/ / __ \\/ |/ /", 0.4), lineDelay)
+	printLine(colorizeRainbow("  / /| ||   / / / /    / ", 0.4), lineDelay)
+	printLine(colorizeRainbow(" / ___ |/   / /_/ /    /  ", 0.4), lineDelay)
+	printLine(colorizeRainbow("/_/  |_/_/|_\\____/_/|_/   ", 0.4), lineDelay)
+	printLine(colorizeRainbow("    [ HIGH-SPEED INPUT BRIDGE ]", 0.6), lineDelay)
+	if !noLogo {
+		printLine(colorizeRainbow("               ___    __    ____ _  __ ____ ___ ", 0.8), lineDelay)
+		printLine(colorizeRainbow("              /   |  / /   / __/ / / //  _//   |", 0.8), lineDelay)
+		printLine(colorizeRainbow("             / /| | / /   / /_  /  / // / / /| |", 0.8), lineDelay)
+		printLine(colorizeRainbow("            / ___ |/ /___/ __/ / /  // / / ___ |", 0.8), lineDelay)
+		printLine(colorizeRainbow("           /_/  |_/_____/___/ /_/ /_/___/_/  |_|", 0.8), lineDelay)
+		printLine(colorizeRainbow("                   S T U D I O S", 0.8), lineDelay)
+	}
+	printLine("", 0)
+
+	printLine(colorizeRainbow("    ────────────────────────────────────────────────────", 0.5), lineDelay)
+
+	time.Sleep(30 * time.Millisecond)
+	printLine(colorizeRainbow(fmt.Sprintf("     ADDRESS : %s", ip), 0.5), lineDelay)
+	printLine(colorizeRainbow(fmt.Sprintf("     PORTS   : %d (TCP/WS)  ·  %d (UDP)", port, udpPort), 0.5), lineDelay)
+	time.Sleep(30 * time.Millisecond)
+	printLine(colorizeRainbow("    ────────────────────────────────────────────────────", 0.5), lineDelay)
+	time.Sleep(30 * time.Millisecond)
+	printLine(colorizeRainbow("    [WiFi ]   Connect the AXON app to the displayed IP", 0.5), lineDelay)
+	printLine(colorizeRainbow(fmt.Sprintf("    [USB  ]   Active ADB redirection  →  port %d", port), 0.5), lineDelay)
+	printLine(colorizeRainbow("    [BT   ]   Use the AXON app → Bluetooth mode from Android", 0.5), lineDelay)
+	time.Sleep(30 * time.Millisecond)
+	printLine(colorizeRainbow("    ────────────────────────────────────────────────────", 0.5), lineDelay)
+	printLine("", 0)
+	time.Sleep(60 * time.Millisecond)
+	fmt.Println(colorizeRainbow("     Scan the QR with the AXON app:", 0.5))
+	printLine("", 0)
+	printTerminalQRCode(url)
+	fmt.Printf("\n")
+	fmt.Println(colorizeRainbow(fmt.Sprintf("    Or enter: %s", url), 0.5))
+	fmt.Println()
+}
+
+// watchConsoleRestore waits until the console window stops being
+// minimized and then runs print once. On platforms without a console
+// window concept isConsoleMinimized is always false, so the caller
+// never starts this watcher there.
+func watchConsoleRestore(print func()) {
+	for {
+		time.Sleep(500 * time.Millisecond)
+		if !isConsoleMinimized() {
+			print()
+			return
+		}
+	}
+}
+
 func main() {
 	// Hidden internal flag used by the self-update helper
 	// (see applyUpdate). It is intercepted here, before flag.Parse,
@@ -1416,44 +1474,15 @@ func main() {
 	activeToken = generateToken()
 	addr := fmt.Sprintf("%s:%d", ip, port)
 	url := fmt.Sprintf("http://%s/?token=%s&udp=%d", addr, activeToken, udpPort)
-	lineDelay := 55 * time.Millisecond
-	printLine(colorizeRainbow("    ___  _  ______  _  __", 0.4), lineDelay)
-	printLine(colorizeRainbow("   /   || |/ / __ \\/ |/ /", 0.4), lineDelay)
-	printLine(colorizeRainbow("  / /| ||   / / / /    / ", 0.4), lineDelay)
-	printLine(colorizeRainbow(" / ___ |/   / /_/ /    /  ", 0.4), lineDelay)
-	printLine(colorizeRainbow("/_/  |_/_/|_\\____/_/|_/   ", 0.4), lineDelay)
-	printLine(colorizeRainbow("    [ HIGH-SPEED INPUT BRIDGE ]", 0.6), lineDelay)
-	if !*noLogo {
-		printLine(colorizeRainbow("               ___    __    ____ _  __ ____ ___ ", 0.8), lineDelay)
-		printLine(colorizeRainbow("              /   |  / /   / __/ / / //  _//   |", 0.8), lineDelay)
-		printLine(colorizeRainbow("             / /| | / /   / /_  /  / // / / /| |", 0.8), lineDelay)
-		printLine(colorizeRainbow("            / ___ |/ /___/ __/ / /  // / / ___ |", 0.8), lineDelay)
-		printLine(colorizeRainbow("           /_/  |_/_____/___/ /_/ /_/___/_/  |_|", 0.8), lineDelay)
-		printLine(colorizeRainbow("                   S T U D I O S", 0.8), lineDelay)
+	if isConsoleMinimized() {
+		// Minimized console window (Windows): printing the banner
+		// and the QR code now would write a huge block into a
+		// minimized console, corrupting its buffer and crashing the
+		// server. Show them as soon as the window is restored.
+		go watchConsoleRestore(func() { printStartupBanner(ip, port, udpPort, url, *noLogo) })
+	} else {
+		printStartupBanner(ip, port, udpPort, url, *noLogo)
 	}
-	printLine("", 0)
-
-	printLine(colorizeRainbow("    ────────────────────────────────────────────────────", 0.5), lineDelay)
-
-	time.Sleep(30 * time.Millisecond)
-	printLine(colorizeRainbow(fmt.Sprintf("     ADDRESS : %s", ip), 0.5), lineDelay)
-	printLine(colorizeRainbow(fmt.Sprintf("     PORTS   : %d (TCP/WS)  ·  %d (UDP)", port, udpPort), 0.5), lineDelay)
-	time.Sleep(30 * time.Millisecond)
-	printLine(colorizeRainbow("    ────────────────────────────────────────────────────", 0.5), lineDelay)
-	time.Sleep(30 * time.Millisecond)
-	printLine(colorizeRainbow("    [WiFi ]   Connect the AXON app to the displayed IP", 0.5), lineDelay)
-	printLine(colorizeRainbow(fmt.Sprintf("    [USB  ]   Active ADB redirection  →  port %d", port), 0.5), lineDelay)
-	printLine(colorizeRainbow("    [BT   ]   Use the AXON app → Bluetooth mode from Android", 0.5), lineDelay)
-	time.Sleep(30 * time.Millisecond)
-	printLine(colorizeRainbow("    ────────────────────────────────────────────────────", 0.5), lineDelay)
-	printLine("", 0)
-	time.Sleep(60 * time.Millisecond)
-	fmt.Println(colorizeRainbow("     Scan the QR with the AXON app:", 0.5))
-	printLine("", 0)
-	printTerminalQRCode(url)
-	fmt.Printf("\n")
-	fmt.Println(colorizeRainbow(fmt.Sprintf("    Or enter: %s", url), 0.5))
-	fmt.Println()
 	go startBluetoothServer()
 	go startUDPServer(udpConn)
 	subFS, err := fs.Sub(webFS, "web")
