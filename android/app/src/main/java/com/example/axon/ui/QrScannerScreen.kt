@@ -4,6 +4,7 @@ import android.content.pm.PackageManager
 import android.util.Size
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -24,10 +25,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -85,6 +88,19 @@ fun QrScannerScreen(
     LaunchedEffect(key1 = true) {
         if (!hasCamPermission) launcher.launch(Manifest.permission.CAMERA)
     }
+    // Scan zoom (issue #12): the QR shown by the PC can be small on
+    // screen, so the camera can be zoomed in. 0 = no zoom, 1 = max zoom.
+    var zoom by remember { mutableFloatStateOf(0f) }
+    var camera by remember { mutableStateOf<Camera?>(null) }
+    LaunchedEffect(zoom, camera) {
+        try {
+            camera?.cameraControl?.setLinearZoom(zoom)
+        } catch (_: Exception) {
+        }
+    }
+    // The scan frame grows with the zoom so the user can aim at a small,
+    // distant QR code.
+    val scanBoxSize = (250 + zoom * 110).dp
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         if (hasCamPermission) {
             val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
@@ -118,7 +134,7 @@ fun QrScannerScreen(
                     try {
                         val cameraProvider = cameraProviderFuture.get()
                         cameraProvider.unbindAll()
-                        cameraProvider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis)
+                        camera = cameraProvider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis)
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -130,7 +146,7 @@ fun QrScannerScreen(
                 val overlayPath = Path().apply {
                     addRect(Rect(0f, 0f, size.width, size.height))
                 }
-                val boxSize = 250.dp.toPx()
+                val boxSize = scanBoxSize.toPx()
                 val left = (size.width - boxSize) / 2
                 val top = (size.height - boxSize) / 2
                 val right = left + boxSize
@@ -171,7 +187,7 @@ fun QrScannerScreen(
                 }
                 Box(
                     modifier = Modifier
-                        .size(260.dp)
+                        .size(scanBoxSize + 10.dp)
                         .border(2.5.dp, BlueAccent, RoundedCornerShape(24.dp))
                         .align(Alignment.Center)
                 )
@@ -182,6 +198,29 @@ fun QrScannerScreen(
                         .padding(bottom = 40.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.85f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xCC0F172A))
+                            .border(1.dp, BorderColor, RoundedCornerShape(12.dp))
+                            .padding(horizontal = 16.dp, vertical = 6.dp)
+                    ) {
+                        Column {
+                            Text(
+                                text = stringResource(id = R.string.qr_zoom),
+                                color = Color.White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Slider(
+                                value = zoom,
+                                onValueChange = { zoom = it },
+                                valueRange = 0f..1f
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))

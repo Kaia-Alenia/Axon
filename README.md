@@ -32,7 +32,7 @@ Axon is engineered from the ground up to provide a flawless, lag-free peripheral
 
 - **Ultra-Low Latency (1ms - 3ms):** Thanks to our optimized Bluetooth and USB/ADB implementations, input delay is practically non-existent. It feels exactly like using a high-end native hardware mouse.
 - **Dynamic Port Allocation:** Robust server architecture automatically manages port conflicts. If standard ports are in use, it seamlessly falls back to dynamic allocation without crashing.
-- **Advanced Gestures:** Pinch-to-zoom, multi-touch scrolling, and double-tap-and-hold to drag (perfect for text selection or dragging windows).
+- **Advanced Gestures:** Pinch-to-zoom, two-finger scrolling, two-finger tap for right-click, and double-tap-and-hold to drag (perfect for text selection or dragging windows).
 - **Hardware Integration:** Utilize native physical volume buttons on your Android device to control system volume.
 - **Cross-Platform Compatibility:** Runs flawlessly on Linux, Windows, and macOS with native input simulation.
 - **Zero-Setup Pairing:** Scan the QR code presented in your terminal and connect instantly.
@@ -138,7 +138,16 @@ axon --port 0 --udp-port 0
 
 # Display version information
 axon --version
+
+# Check for a new version and install it (no manual rename needed)
+axon --update
 ```
+
+## Updating Axon
+
+**Server:** run `axon --update`. It checks the latest GitHub release first and does nothing if you are already up to date. Otherwise it downloads the new binary, verifies it (size and file type), and replaces the running binary — on Windows a helper process performs the swap after the server exits, verifies the new binary actually launches, and restores the previous binary from `axon.exe.old` if anything fails. Every step is logged to `update.log` next to the executable. In Linux/macOS the server restarts itself into the new version.
+
+**Android app:** the app checks for a new version once per launch (and whenever you tap "Check for updates" on the start screen) and shows an in-app dialog when one is available. Tap **Download** to fetch the APK with progress, then confirm in the system installer — the update never opens GitHub in the browser. If Android asks you to allow "Install unknown apps" for Axon, allow it in Settings and tap **Install** again. A cancelled or failed install keeps the downloaded file so you can retry without downloading again.
 
 ## Troubleshooting
 
@@ -170,6 +179,20 @@ brew install android-platform-tools
 **Windows:** Download the [Android Platform Tools ZIP](https://developer.android.com/tools/releases/platform-tools) from Google, extract it, and add the folder to your system `PATH`.
 
 After installing ADB, connect your Android device via USB, enable USB Debugging in Developer Options, and restart Axon. The warning will disappear once a device is detected.
+
+### Mouse stops working when an app like FastGithub is in the foreground (Windows)
+
+If the mouse works everywhere except while an elevated app (for example FastGithub, which runs as Administrator) is focused, Windows is blocking Axon's synthetic input: UIPI (User Interface Privilege Isolation) silently discards `SendInput` events from a non-elevated process to an elevated window. The Axon server log will show a `[INPUT] Warning: Windows rejected synthetic input` message in that case. Run `axon.exe` as Administrator to control elevated windows.
+
+### Update fails or leaves files behind
+
+If `axon --update` fails, read `update.log` next to the executable — it records every step (version check, disk space, download, verification, swap, launch check). Common causes:
+
+- **"not enough free disk space"** — free space in the install folder and try again; nothing was downloaded.
+- **"install directory is not writable"** — the folder is read-only or needs Administrator; on Windows, right-click `axon.exe` and choose **Run as administrator**.
+- **A leftover `axon.exe.new`** means the swap could not finish (for example the file was locked by antivirus); the old binary is still in place and safe to use. A leftover `axon.exe.old` is the backup of the previous version — you can copy it over `axon.exe` to roll back manually.
+
+On Android, if an update download fails or the installer reports a parse error, the app deletes the broken file and offers a retry; if the install was cancelled, the downloaded APK is kept and the app offers to install it again on the next launch.
 
 ### Viewing Your Phone on Your PC (scrcpy)
 

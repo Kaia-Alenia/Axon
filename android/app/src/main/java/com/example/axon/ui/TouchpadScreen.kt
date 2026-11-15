@@ -47,6 +47,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -60,6 +65,7 @@ import com.example.axon.network.UdpClient
 import com.example.axon.network.InputClient
 import com.example.axon.R
 import kotlin.math.abs
+import kotlin.math.max
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -125,9 +131,16 @@ fun TouchpadScreen(
         }
     }
     val focusRequester = remember { FocusRequester() }
+    // Issue #11: hideable scroll strip and a fullscreen touchpad mode
+    // (whole screen is the touchpad, no other buttons).
+    var showScrollStrip by remember { mutableStateOf(true) }
+    var fullscreenTouchpad by remember { mutableStateOf(false) }
     var textState by remember { mutableStateOf(TextFieldValue("  ", TextRange(2))) }
     val coroutineScope = rememberCoroutineScope()
     var touchPos by remember { mutableStateOf<Offset?>(null) }
+    // Scroll-strip accumulator: hoisted out of the conditional scroll-strip
+    // block — remember() must not be called conditionally in Compose.
+    val scrollStripAcc = remember { java.util.concurrent.atomic.AtomicReference(0f) }
     val tapScale = remember { Animatable(0f) }
     var tapPos by remember { mutableStateOf<Offset?>(null) }
     var scrollOffset by remember { mutableStateOf(0f) }
@@ -142,6 +155,7 @@ fun TouchpadScreen(
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
+            if (!fullscreenTouchpad) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -163,6 +177,45 @@ fun TouchpadScreen(
                         fontWeight = FontWeight.Medium
                     )
                 }
+                // Scroll-strip toggle (#11b).
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.White.copy(alpha = 0.05f))
+                        .border(1.dp, BorderColor, RoundedCornerShape(12.dp))
+                        .clickable { showScrollStrip = !showScrollStrip }
+                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(
+                            id = if (showScrollStrip) R.string.hide_scroll_strip
+                            else R.string.show_scroll_strip
+                        ),
+                        color = TextSecond,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                // Fullscreen touchpad toggle (#11b).
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.White.copy(alpha = 0.05f))
+                        .border(1.dp, BorderColor, RoundedCornerShape(12.dp))
+                        .clickable { fullscreenTouchpad = true }
+                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.fullscreen_touchpad),
+                        color = TextSecond,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
@@ -179,6 +232,7 @@ fun TouchpadScreen(
                         fontWeight = FontWeight.Bold
                     )
                 }
+            }
             }
             Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 Box(
@@ -205,6 +259,15 @@ fun TouchpadScreen(
                                 var lastZoomDist: Float? = null
                                 var lastTwoFingerCenterY: Float? = null
                                 var twoFingerScrollAcc = 0f
+                                // Issue #9/#11a: two-finger gesture state.
+                                // twoFingerMode is "scroll" or "pinch" once the
+                                // gesture is classified, and stays fixed until
+                                // the fingers lift, so a scroll cannot turn
+                                // into a zoom halfway through.
+                                var twoFingerMode: String? = null
+                                var twoFingerTapCandidate = false
+                                var twoFingerMaxMove = 0f
+                                var twoFingerUsed = false
                                 while (true) {
                                     val event = awaitPointerEvent()
                                     val anyPressed = event.changes.any { it.pressed }
@@ -217,7 +280,11 @@ fun TouchpadScreen(
                                             client.sendMouseUp("left")
                                         } else {
                                             val duration = System.currentTimeMillis() - startTime
-                                            if (!isDrag && duration < 200 && totalDist < 15f) {
+                                            if (twoFingerTapCandidate && twoFingerMaxMove < 15f && duration < 300) {
+                                                // Two-finger tap = right-click (#11a).
+                                                client.sendClick("right")
+                                                lastTapTime = System.currentTimeMillis()
+                                            } else if (!isDrag && !twoFingerUsed && duration < 200 && totalDist < 15f) {
                                                 client.sendClick("left")
                                                 lastTapTime = System.currentTimeMillis()
                                                 tapPos = down.position
@@ -235,6 +302,7 @@ fun TouchpadScreen(
                                     }
                                     val pressedChanges = event.changes.filter { it.pressed }
                                     if (pressedChanges.size == 2) {
+                                        twoFingerUsed = true
                                         val p1 = pressedChanges[0].position
                                         val p2 = pressedChanges[1].position
                                         val currentCenterY = (p1.y + p2.y) / 2f
@@ -242,40 +310,57 @@ fun TouchpadScreen(
                                         if (lastZoomDist != null && lastTwoFingerCenterY != null) {
                                             val deltaDist = dist - lastZoomDist!!
                                             val deltaY = currentCenterY - lastTwoFingerCenterY!!
-                                            if (abs(deltaY) > abs(deltaDist) * 1.1f || abs(deltaDist) < 10f) {
-                                                twoFingerScrollAcc += deltaY
-                                                if (abs(twoFingerScrollAcc) > 16f) {
-                                                    val now = System.currentTimeMillis()
-                                                    val last = lastScrollTime.get()
-                                                    if (now - last >= scrollThrottleMs) {
-                                                        if (lastScrollTime.compareAndSet(last, now)) {
-                                                            sendScroll(if (twoFingerScrollAcc > 0) 1.0 else -1.0)
-                                                            twoFingerScrollAcc = 0f
+                                            twoFingerMaxMove = max(twoFingerMaxMove, max(abs(deltaY), abs(deltaDist)))
+                                            // Classify the gesture once, with a
+                                            // clear margin, then stick to it
+                                            // (issue #9: pan must scroll, only
+                                            // a real pinch may zoom).
+                                            if (twoFingerMode == null) {
+                                                when {
+                                                    abs(deltaY) > 12f && abs(deltaY) > abs(deltaDist) * 1.2f -> twoFingerMode = "scroll"
+                                                    abs(deltaDist) > 20f && abs(deltaDist) > abs(deltaY) * 1.2f -> twoFingerMode = "pinch"
+                                                }
+                                            }
+                                            when (twoFingerMode) {
+                                                "scroll" -> {
+                                                    twoFingerScrollAcc += deltaY
+                                                    if (abs(twoFingerScrollAcc) > 12f) {
+                                                        val now = System.currentTimeMillis()
+                                                        val last = lastScrollTime.get()
+                                                        if (now - last >= scrollThrottleMs) {
+                                                            if (lastScrollTime.compareAndSet(last, now)) {
+                                                                sendScroll(if (twoFingerScrollAcc > 0) 1.0 else -1.0)
+                                                                twoFingerScrollAcc = 0f
+                                                            }
                                                         }
                                                     }
                                                 }
-                                                lastTwoFingerCenterY = currentCenterY
-                                                lastZoomDist = dist
-                                            } else if (abs(deltaDist) > 18f) {
-                                                if (deltaDist > 0) {
-                                                    client.sendKeyCombo("ctrl", "+")
-                                                } else {
-                                                    client.sendKeyCombo("ctrl", "-")
+                                                "pinch" -> {
+                                                    if (abs(deltaDist) > 18f) {
+                                                        if (deltaDist > 0) {
+                                                            client.sendKeyCombo("ctrl", "+")
+                                                        } else {
+                                                            client.sendKeyCombo("ctrl", "-")
+                                                        }
+                                                        twoFingerScrollAcc = 0f
+                                                    }
                                                 }
-                                                lastZoomDist = dist
-                                                lastTwoFingerCenterY = currentCenterY
-                                                twoFingerScrollAcc = 0f
                                             }
+                                            lastTwoFingerCenterY = currentCenterY
+                                            lastZoomDist = dist
                                         } else {
                                             lastZoomDist = dist
                                             lastTwoFingerCenterY = currentCenterY
                                             twoFingerScrollAcc = 0f
+                                            twoFingerTapCandidate = true
+                                            twoFingerMaxMove = 0f
                                         }
                                         event.changes.forEach { it.consume() }
                                     } else {
                                         lastZoomDist = null
                                         lastTwoFingerCenterY = null
                                         twoFingerScrollAcc = 0f
+                                        twoFingerMode = null
                                     }
                                     val change = event.changes.firstOrNull { it.id == dragPointerId && it.pressed }
                                         ?: event.changes.firstOrNull { it.pressed }
@@ -337,10 +422,17 @@ fun TouchpadScreen(
                             color = TextSecond.copy(alpha = 0.15f),
                             fontSize = 32.sp
                         )
+                        Text(
+                            text = stringResource(id = R.string.two_finger_hint),
+                            color = TextSecond.copy(alpha = 0.5f),
+                            fontSize = 10.sp,
+                            modifier = Modifier.padding(horizontal = 24.dp)
+                        )
                     }
                 }
+                if (showScrollStrip && !fullscreenTouchpad) {
                 Spacer(modifier = Modifier.width(12.dp))
-                val scrollAcc = remember { java.util.concurrent.atomic.AtomicReference(0f) }
+                val scrollAcc = scrollStripAcc
                 Box(
                     modifier = Modifier
                         .width(62.dp)
@@ -405,7 +497,9 @@ fun TouchpadScreen(
                         modifier = Modifier.rotate(90f)
                     )
                 }
+                }
             }
+            if (!fullscreenTouchpad) {
             Spacer(modifier = Modifier.height(10.dp))
             Row(
                 modifier = Modifier
@@ -493,6 +587,48 @@ fun TouchpadScreen(
                         fontWeight = FontWeight.Bold
                     )
                 }
+                Spacer(modifier = Modifier.width(12.dp))
+                // Dedicated Backspace key (#11c): always sends a real
+                // Backspace event to the PC, so it deletes pre-existing
+                // text instead of only text typed on the phone.
+                Box(
+                    modifier = Modifier
+                        .weight(0.6f)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White.copy(alpha = 0.05f))
+                        .border(1.dp, BorderColor, RoundedCornerShape(16.dp))
+                        .clickable { client.sendKey("BackSpace") },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "⌫",
+                        color = TextPrimary,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            }
+        }
+        if (fullscreenTouchpad) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xCC0F172A))
+                    .border(1.dp, BorderColor, RoundedCornerShape(12.dp))
+                    .clickable { fullscreenTouchpad = false }
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(id = R.string.exit_fullscreen),
+                    color = TextPrimary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
         TextField(
@@ -519,7 +655,20 @@ fun TouchpadScreen(
                 .width(1.dp)
                 .height(1.dp)
                 .alpha(0f)
-                .focusRequester(focusRequester),
+                .focusRequester(focusRequester)
+                // Issue #11c: the phone delete key used to be swallowed
+                // by the IME whenever the local buffer was empty, so it
+                // only deleted text typed on the phone. Intercept it here
+                // and always send a real Backspace event to the PC, which
+                // deletes whatever text is under the PC cursor.
+                .onKeyEvent { event ->
+                    if (event.key == Key.Backspace && event.type == KeyEventType.KeyDown) {
+                        client.sendKey("BackSpace")
+                        true
+                    } else {
+                        false
+                    }
+                },
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Default,
                 autoCorrectEnabled = false,

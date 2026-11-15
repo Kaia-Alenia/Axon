@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import android.content.res.Configuration
 import java.util.Locale
+import com.example.axon.network.AppUpdater
 import com.example.axon.network.BluetoothClient
 import com.example.axon.network.InputClient
 import com.example.axon.network.WebSocketClient
@@ -28,6 +29,30 @@ enum class AppScreen {
     Scan,
     Control
 }
+
+/** Normalises a stored / system language tag to "es", "en" or "zh". */
+private fun normalizeLanguageCode(raw: String?): String {
+    val tag = (raw ?: "").trim().lowercase()
+    return when {
+        tag.startsWith("zh") -> "zh"
+        tag.startsWith("en") -> "en"
+        tag.startsWith("es") -> "es"
+        else -> "es"
+    }
+}
+
+/**
+ * Locale for a language code. Chinese must be Locale.SIMPLIFIED_CHINESE
+ * (zh-Hans-CN), not a bare Locale("zh"): a bare "zh" locale did not match
+ * the values-zh resources reliably, and the old ES<->EN-only toggle could
+ * never return to Chinese at all (issue #11).
+ */
+private fun localeForLanguage(code: String): Locale = when (normalizeLanguageCode(code)) {
+    "zh" -> Locale.SIMPLIFIED_CHINESE
+    "en" -> Locale.ENGLISH
+    else -> Locale("es")
+}
+
 class MainActivity : ComponentActivity(), WebSocketClient.WebSocketConnectionListener, BluetoothClient.ConnectionListener {
     private var webSocketClient: WebSocketClient? = null
     private var bluetoothClient: BluetoothClient? = null
@@ -36,8 +61,9 @@ class MainActivity : ComponentActivity(), WebSocketClient.WebSocketConnectionLis
     private var connectionError by mutableStateOf("")
     override fun attachBaseContext(newBase: Context) {
         val prefs = newBase.getSharedPreferences("axon_prefs", MODE_PRIVATE)
-        val lang = prefs.getString("language", Locale.getDefault().language) ?: "es"
-        val locale = Locale(lang)
+        val stored = prefs.getString("language", null)
+        val lang = normalizeLanguageCode(stored ?: Locale.getDefault().toLanguageTag())
+        val locale = localeForLanguage(lang)
         Locale.setDefault(locale)
         val config = Configuration(newBase.resources.configuration)
         config.setLocale(locale)
@@ -51,7 +77,13 @@ class MainActivity : ComponentActivity(), WebSocketClient.WebSocketConnectionLis
         enableEdgeToEdge()
         setContent {
             val prefs = remember { getSharedPreferences("axon_prefs", MODE_PRIVATE) }
-            val currentLanguage = remember { prefs.getString("language", Locale.getDefault().language) ?: "es" }
+            // One updater for the whole launch: its cached check result is
+            // what keeps the automatic check to once per launch even if the
+            // user leaves the Start screen and comes back.
+            val appUpdater = remember { AppUpdater(applicationContext) }
+            var currentLanguage by remember {
+                mutableStateOf(normalizeLanguageCode(prefs.getString("language", null)))
+            }
             AxonTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -65,11 +97,16 @@ class MainActivity : ComponentActivity(), WebSocketClient.WebSocketConnectionLis
                                         currentScreen = AppScreen.Connect
                                     },
                                     currentLanguage = currentLanguage,
-                                    onToggleLanguage = {
-                                        val newLang = if (currentLanguage == "es") "en" else "es"
+                                    onSelectLanguage = { selected ->
+                                        // Any of ES / EN / ZH can be selected
+                                        // directly, so Chinese can always be
+                                        // reached again (#11).
+                                        val newLang = normalizeLanguageCode(selected)
+                                        currentLanguage = newLang
                                         prefs.edit().putString("language", newLang).apply()
                                         recreate()
-                                    }
+                                    },
+                                    updater = appUpdater
                                 )
                             }
                             AppScreen.Connect -> {

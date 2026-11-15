@@ -21,6 +21,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material3.Text
@@ -73,6 +78,10 @@ private val mediaKeyRow = listOf(
     LocalizedSpecialKey(R.string.media_play_pause, "space"),
 )
 private val specialKeyRow = listOf(
+    // Dedicated Backspace key (#11c): always sends a real Backspace
+    // event to the PC, so it deletes pre-existing PC text, not only
+    // text typed on the phone.
+    SpecialKey("⌫", "BackSpace"),
     SpecialKey("ESC", "Escape"),
     SpecialKey("TAB", "Tab"),
     SpecialKey("CTRL", "__mod_ctrl"),
@@ -160,7 +169,19 @@ fun TerminalKeyboardScreen(client: InputClient, onDisconnect: () -> Unit) {
         },
         modifier = Modifier
             .size(0.dp)
-            .focusRequester(focusRequester),
+            .focusRequester(focusRequester)
+            // Issue #11c: when the local buffer is empty the IME swallows
+            // the delete key and onValueChange never fires, so nothing is
+            // sent to the PC. Intercept Delete here and always send a real
+            // Backspace event to the PC.
+            .onKeyEvent { event ->
+                if (event.key == Key.Backspace && event.type == KeyEventType.KeyDown) {
+                    sendKey("BackSpace")
+                    true
+                } else {
+                    false
+                }
+            },
         keyboardOptions = KeyboardOptions(
             imeAction = ImeAction.Default,
             autoCorrectEnabled = false,

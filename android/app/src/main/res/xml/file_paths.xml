@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FileProvider paths for the in-app updater: the downloaded APK lives
+     in filesDir/updates/ (see AppUpdater.updatesDir()), a stable location
+     the system never cleans — unlike the cache dir, which the system can
+     wipe mid-install. Only that directory is exposed, nothing else.
+     Authority: ${applicationId}.fileprovider (see AndroidManifest.xml). -->
+<paths>
+    <files-path name="updates" path="updates/" />
+</paths>

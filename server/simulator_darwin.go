@@ -111,6 +111,24 @@ func (s *DarwinSimulator) Type(text string) {
 }
 
 func (s *DarwinSimulator) Key(key string) {
+	// Volume keys (issue #10) have no cliclick equivalent, so they are
+	// handled with AppleScript, adjusting the current output volume
+	// relatively instead of setting an absolute level.
+	switch strings.ToLower(key) {
+	case "volumeup":
+		_ = exec.Command("osascript", "-e", "set volume output volume ((output volume of (get volume settings)) + 10)").Run()
+		return
+	case "volumedown":
+		_ = exec.Command("osascript", "-e", "set volume output volume ((output volume of (get volume settings)) - 10)").Run()
+		return
+	case "volumemute", "mute":
+		_ = exec.Command("osascript", "-e", "set volume output muted not (output muted of (get volume settings))").Run()
+		return
+	case "playpause", "mediaplaypause":
+		// F8 is the play/pause media key on Mac keyboards.
+		s.Send("key f8")
+		return
+	}
 	darwinKey := key
 	switch key {
 	case "Return":
@@ -139,6 +157,9 @@ func (s *DarwinSimulator) Key(key string) {
 		darwinKey = "home"
 	case "End":
 		darwinKey = "end"
+	case "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12":
+		// cliclick expects lowercase function-key names (issue #9).
+		darwinKey = strings.ToLower(key)
 	}
 	s.Send("key " + darwinKey)
 }
