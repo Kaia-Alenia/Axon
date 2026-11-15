@@ -4,7 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.7.4] - 2026-11-15
+
+### Changed
+- Version bump to 1.7.4 (no code changes vs 1.7.3).
+
+## [1.7.3] - 2026-11-15
 
 ### ✔️ Fixed
 - **`axon --update` printed nothing on Linux:** the server log goes through a non-blocking writer with a background goroutine, and the updater called `os.Exit` right after logging its result, so the queued lines (e.g. "Already up to date") were lost when the process exited. The updater now flushes pending log output before exiting, on every path, and the same flush applies to the update helper and to server startup errors that exit. Also, the version check now runs before the install-directory writability probe, so an up-to-date install in a read-only directory (e.g. `/usr/local/bin`) correctly reports "Already up to date" instead of failing with permission denied.
