@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.6] - 2026-11-16
+
+### Added
+- **New Axon logo and README banner:** the Android app icon is now the new neuron-mouse logo (cyan-to-purple gradient on a dark-navy background) and the README opens with the new Axon banner ("REMOTE MOUSE"). The logo source files live in `docs/` (`axon-logo.svg` for the app icon, `axon-banner.svg` for the README). The adaptive launcher icon is a vector conversion of the logo (`ic_launcher_foreground.xml`), and the legacy mipmap icons were regenerated from it at every density.
+
 ## [1.7.5] - 2026-11-15
 
 ### ✔️ Fixed

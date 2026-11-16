@@ -1,47 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Axon launcher icon foreground: new neuron-mouse logo (docs/axon-logo.svg).
+     Gradient rounded-square background with the dark-navy mouse and neuron
+     branches. Keep in sync with docs/axon-logo.svg. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
+    android:viewportWidth="512"
+    android:viewportHeight="512">
 
+    <!-- Gradient rounded-square background (#22D3EE -> #A78BFA) -->
     <path
-        android:pathData="M 54,12 L 90,33 L 90,75 L 54,96 L 18,75 L 18,33 Z"
-        android:strokeWidth="3.5"
-        android:strokeColor="#3B82F6"
-        android:strokeLineJoin="round"
-        android:fillColor="#090E1A" />
+        android:pathData="M112,0 L400,0 A112,112 0 0 1 512,112 L512,400 A112,112 0 0 1 400,512 L112,512 A112,112 0 0 1 0,400 L0,112 A112,112 0 0 1 112,0 Z">
+        <gradient
+            android:type="linear"
+            android:startX="0"
+            android:startY="0"
+            android:endX="512"
+            android:endY="0"
+            android:startColor="#22D3EE"
+            android:endColor="#A78BFA" />
+    </path>
 
-    <path
-        android:pathData="M 54,12 L 54,38 M 18,33 L 38,45 M 90,33 L 70,45 M 18,75 L 38,63 M 90,75 L 70,63 M 54,96 L 54,70"
-        android:strokeWidth="1.5"
-        android:strokeColor="#1E293B"
-        android:strokeLineCap="round" />
-
-    <path
-        android:pathData="M 38,45 L 54,38 L 70,45 L 70,63 L 54,70 L 38,63 Z"
-        android:strokeWidth="2"
-        android:strokeColor="#8B5CF6"
-        android:strokeLineJoin="round"
-        android:fillColor="#0D1527" />
-
-    <path
-        android:pathData="M 54,42 L 64,62 M 54,42 L 44,62 M 47,56 L 61,56"
-        android:strokeWidth="3"
-        android:strokeColor="#3B82F6"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
-
-    <path
-        android:pathData="M 54,42 m -3,0 a 3,3 0 1,0 6,0 a 3,3 0 1,0 -6,0"
-        android:fillColor="#F9FAFB" />
-
-    <path
-        android:pathData="M 44,62 m -3,0 a 3,3 0 1,0 6,0 a 3,3 0 1,0 -6,0"
-        android:fillColor="#8B5CF6" />
-
-    <path
-        android:pathData="M 64,62 m -3,0 a 3,3 0 1,0 6,0 a 3,3 0 1,0 -6,0"
-        android:fillColor="#8B5CF6" />
-
+    <group android:translateY="15">
+        <!-- Mouse body -->
+        <path
+            android:pathData="M96,265 A75,75 0 0 1 246,265 L246,365 A75,75 0 0 1 96,365 Z"
+            android:strokeWidth="30"
+            android:strokeColor="#0B1226"
+            android:strokeLineJoin="round" />
+        <!-- Mouse divider and stem -->
+        <path
+            android:pathData="M98,307 H244 M171,192 V307"
+            android:strokeWidth="14"
+            android:strokeColor="#0B1226"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <!-- Neuron branch -->
+        <path
+            android:pathData="M171,188 V150 C171,104 205,86 260,86 H310"
+            android:strokeWidth="20"
+            android:strokeColor="#0B1226"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <!-- Branch tips -->
+        <path
+            android:pathData="M310,86 L392,52 M310,86 L404,118 M310,86 L360,176"
+            android:strokeWidth="16"
+            android:strokeColor="#0B1226"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <!-- Neuron nodes -->
+        <path
+            android:pathData="M392,52 m-22,0 a22,22 0 1,0 44,0 a22,22 0 1,0 -44,0"
+            android:fillColor="#0B1226" />
+        <path
+            android:pathData="M404,118 m-22,0 a22,22 0 1,0 44,0 a22,22 0 1,0 -44,0"
+            android:fillColor="#0B1226" />
+        <path
+            android:pathData="M360,176 m-22,0 a22,22 0 1,0 44,0 a22,22 0 1,0 -44,0"
+            android:fillColor="#0B1226" />
+        <!-- Scroll wheel -->
+        <path
+            android:pathData="M156,239 A15,15 0 0 1 186,239 L186,265 A15,15 0 0 1 156,265 Z"
+            android:fillColor="#FFFFFF" />
+    </group>
 </vector>
