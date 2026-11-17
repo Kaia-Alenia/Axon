@@ -5,6 +5,11 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y este proyecto sigue el [Versionado Semántico](https://semver.org/lang/es/).
 
 
+## [1.7.7] - 2026-11-16
+
+### Corregido
+- **Diseno del encabezado del touchpad:** los dos botones con texto largo anadidos en 1.7.5 saturaban la fila del encabezado en telefonos estrechos y aplastaban el titulo Touchpad + la IP a ancho cero, asi que "Touchpad" se veia una letra por linea bajando por el lado izquierdo. El encabezado vuelve a su diseno original (titulo + IP + desconectar); los botones de la tira de desplazamiento y pantalla completa se movieron a la fila de acciones rapidas (que se desplaza horizontalmente) con etiquetas cortas. Los botones Anterior/Siguiente vuelven a sus etiquetas originales (se revierte el confuso cambio a "Video arriba/abajo").
+
 ## [1.7.6] - 2026-11-16
 
 ### Añadido

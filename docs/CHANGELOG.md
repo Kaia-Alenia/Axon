@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.7] - 2026-11-16
+
+### Fixed
+- **Touchpad header layout:** the two long-text toggle buttons added in 1.7.5 crowded the header Row on narrow phones and squeezed the Touchpad title + server IP to zero width, so "Touchpad" rendered one letter per line down the left side. The header is back to the original layout (title + IP + disconnect); the scroll-strip and fullscreen toggles moved to the horizontally scrollable quick-actions row with short labels. The media Prev/Next buttons are back to their original labels (the confusing "Video up/down" rename is reverted).
+
 ## [1.7.6] - 2026-11-16
 
 ### Added

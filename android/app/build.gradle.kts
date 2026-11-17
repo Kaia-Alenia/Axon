@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.axon"
         minSdk = 24
         targetSdk = 36
-        versionCode = 9
-        versionName = "1.7.6"
+        versionCode = 10
+        versionName = "1.7.7"
     }
 
     // All debug APKs (local builds and CI) are signed with the same
