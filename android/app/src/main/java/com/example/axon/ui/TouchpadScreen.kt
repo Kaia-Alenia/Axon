@@ -177,44 +177,6 @@ fun TouchpadScreen(
                         fontWeight = FontWeight.Medium
                     )
                 }
-                // Scroll-strip toggle (#11b).
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White.copy(alpha = 0.05f))
-                        .border(1.dp, BorderColor, RoundedCornerShape(12.dp))
-                        .clickable { showScrollStrip = !showScrollStrip }
-                        .padding(horizontal = 10.dp, vertical = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = stringResource(
-                            id = if (showScrollStrip) R.string.hide_scroll_strip
-                            else R.string.show_scroll_strip
-                        ),
-                        color = TextSecond,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                // Fullscreen touchpad toggle (#11b).
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White.copy(alpha = 0.05f))
-                        .border(1.dp, BorderColor, RoundedCornerShape(12.dp))
-                        .clickable { fullscreenTouchpad = true }
-                        .padding(horizontal = 10.dp, vertical = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.fullscreen_touchpad),
-                        color = TextSecond,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
                 Spacer(modifier = Modifier.width(8.dp))
                 Box(
                     modifier = Modifier
@@ -532,6 +494,45 @@ fun TouchpadScreen(
                             fontWeight = FontWeight.SemiBold
                         )
                     }
+                }
+                // Touchpad options (#11b) live here now, not in the header:
+                // long labels in the header Row squeezed the title into a
+                // vertical column on narrow phones. This row scrolls, so
+                // the buttons cannot break the layout.
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.White.copy(alpha = 0.05f))
+                        .border(1.dp, BorderColor, RoundedCornerShape(12.dp))
+                        .clickable { showScrollStrip = !showScrollStrip }
+                        .padding(horizontal = 14.dp, vertical = 9.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(
+                            id = if (showScrollStrip) R.string.hide_scroll_strip_short
+                            else R.string.show_scroll_strip_short
+                        ),
+                        color = TextSecond,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.White.copy(alpha = 0.05f))
+                        .border(1.dp, BorderColor, RoundedCornerShape(12.dp))
+                        .clickable { fullscreenTouchpad = true }
+                        .padding(horizontal = 14.dp, vertical = 9.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.fullscreen_touchpad_short),
+                        color = TextSecond,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(10.dp))
